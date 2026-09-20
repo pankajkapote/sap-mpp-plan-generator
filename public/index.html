@@ -696,6 +696,14 @@ Include business-critical integrations, custom code remediation, security valida
 <script>
   let plan = [];
 
+  let sapResearch = {
+  source: "Not researched",
+  fallback: false,
+  answer: "",
+  planningConsiderations: [],
+  references: []
+};
+
   const NORMAL_CALENDAR = "Normal Working Calendar";
   const CUTOVER_CALENDAR = "Weekend 24x7 Cutover Calendar";
 
@@ -1036,11 +1044,27 @@ Include business-critical integrations, custom code remediation, security valida
         `Perform applicable SAP readiness checks, simplification item analysis, add-on compatibility checks, custom-code assessment and technical release compatibility assessment. Source: ${sourceStack}. Target: ${targetStack}.`
     });
 
+    const sapDocumentationValidation = addTask({
+      phase: "Planning",
+      name: "SAP documentation, guide and SAP Note validation",
+      durationHours: 32,
+      predecessors: [kickoff],
+      teams: "BASIS, Functional, ABAP, DBA, Infra, Security, PMO",
+      details:
+        `Research source: ${sapResearch.source}. ` +
+        `Validate relevant official SAP Help Portal documentation, SAP Product Availability Matrix, SAP Maintenance Planner results, SAP Readiness Check findings, SAP Notes and implementation guides. ` +
+        `Research findings: ${
+          sapResearch.planningConsiderations.length
+            ? sapResearch.planningConsiderations.join(" ")
+            : "No research findings are currently stored. Run SAP Guide Research before generating the plan."
+        }`
+    });
+
     const architecture = addTask({
       phase: "Planning",
       name: "Target architecture, hosting, sizing and connectivity design",
       durationHours: 64,
-      predecessors: [kickoff],
+      predecessors: [kickoff, sapDocumentationValidation],
       teams: "Infra, BASIS, DBA, Security, Integration",
       details:
         `Source Hosting: ${sourceHosting}. Target Hosting: ${targetHosting}. Define target architecture, sizing, network, firewall, DNS, backup, monitoring, HA/DR and access requirements.`
@@ -1060,7 +1084,7 @@ Include business-critical integrations, custom code remediation, security valida
       phase: "Planning",
       name: "Cutover, rollback and downtime strategy",
       durationHours: 56,
-      predecessors: [discovery, readiness],
+      predecessors: [discovery, readiness, sapDocumentationValidation],
       teams: "PMO, BASIS, DBA, Infra, Functional, ABAP, Integration, Security",
       details:
         "Define detailed cutover approach, business downtime window, rollback decision points, communication plan, command center model, cutover workstreams and go/no-go criteria."
@@ -1641,11 +1665,12 @@ Include business-critical integrations, custom code remediation, security valida
           <CalendarUID>${calendarUid}</CalendarUID>
           <Notes>${xmlEscape(
             `Phase: ${item.phase}
-Calendar: ${item.calendar}
-Execution Mode: ${item.executionMode}
-Teams: ${item.teams}
-Transport Freeze Impact: ${item.transportFreezeImpact ? "Yes" : "No"}
-Details: ${item.details}`
+          Calendar: ${item.calendar}
+          Execution Mode: ${item.executionMode}
+          Teams: ${item.teams}
+          Transport Freeze Impact: ${item.transportFreezeImpact ? "Yes" : "No"}
+          SAP Research Source: ${sapResearch.source}
+          Details: ${item.details}`
           )}</Notes>
           ${predecessorXml}
         </Task>
@@ -1693,55 +1718,140 @@ Details: ${item.details}`
     );
   }
 
-  async function researchSAPGuides() {
-    const resultBox = document.getElementById("guideResults");
+async function researchSAPGuides() {
+  const resultBox = document.getElementById("guideResults");
 
-    resultBox.style.display = "block";
-    resultBox.textContent =
-      "Researching SAP documentation and guides using the secure Gemini backend endpoint...";
+  resultBox.style.display = "block";
+  resultBox.textContent =
+    "Researching SAP documentation. If Gemini is unavailable or quota-limited, SAP Help Portal and Google site-restricted search links will be generated automatically...";
 
-    const payload = {
-      transformationType: getValue("transformationType"),
-      sourceHosting: getValue("sourceHosting"),
-      targetHosting: getValue("targetHosting"),
-      sourceApplicationOS: getValue("sourceApplicationOS"),
-      sourceDatabase: getValue("sourceDatabase"),
-      sourceDatabaseOS: getValue("sourceDatabaseOS"),
-      targetApplicationOS: getValue("targetApplicationOS"),
-      targetDatabase: getValue("targetDatabase"),
-      targetDatabaseOS: getValue("targetDatabaseOS"),
-      sourceRelease: getValue("sourceRelease"),
-      targetRelease: getValue("targetRelease"),
-      scope: getValue("scope")
+  const payload = {
+    transformationType: getValue("transformationType"),
+    sourceHosting: getValue("sourceHosting"),
+    targetHosting: getValue("targetHosting"),
+    sourceApplicationOS: getValue("sourceApplicationOS"),
+    sourceDatabase: getValue("sourceDatabase"),
+    sourceDatabaseOS: getValue("sourceDatabaseOS"),
+    targetApplicationOS: getValue("targetApplicationOS"),
+    targetDatabase: getValue("targetDatabase"),
+    targetDatabaseOS: getValue("targetDatabaseOS"),
+    sourceRelease: getValue("sourceRelease"),
+    targetRelease: getValue("targetRelease"),
+    scope: getValue("scope")
+  };
+
+  try {
+    const response = await fetch("/api/research/sap-guides", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    sapResearch = {
+      source: data.source || "SAP Documentation Research",
+      fallback: Boolean(data.fallback),
+      answer: data.answer || "",
+      planningConsiderations: data.planningConsiderations || [],
+      references: data.references || []
     };
 
-    try {
-      const response = await fetch("/api/research/sap-guides", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
+    const referencesHtml = sapResearch.references
+      .map(reference => {
+        if (reference.sapHelpUrl || reference.googleUrl) {
+          return `
+            <li>
+              <strong>${escapeHTML(reference.title)}</strong><br />
+              <a href="${escapeHTML(reference.sapHelpUrl)}" target="_blank" rel="noopener noreferrer">
+                Search SAP Help Portal
+              </a>
+              &nbsp;|&nbsp;
+              <a href="${escapeHTML(reference.googleUrl)}" target="_blank" rel="noopener noreferrer">
+                Search Google: help.sap.com/docs
+              </a>
+            </li>
+          `;
+        }
 
-      const data = await response.json();
+        return `
+          <li>
+            <a href="${escapeHTML(reference.url)}" target="_blank" rel="noopener noreferrer">
+              ${escapeHTML(reference.title)}
+            </a>
+          </li>
+        `;
+      })
+      .join("");
 
-      if (!response.ok) {
-        throw new Error(data.details || data.error || "Unknown error");
+    resultBox.innerHTML = `
+      <strong>Research Source:</strong> ${escapeHTML(sapResearch.source)}
+      ${sapResearch.fallback
+        ? `<br /><strong>Fallback Mode:</strong> Gemini was unavailable. Targeted SAP Help Portal and Google search links have been created.`
+        : ""
       }
+      <pre style="white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;line-height:1.5;">${escapeHTML(sapResearch.answer)}</pre>
+      ${
+        referencesHtml
+          ? `<strong>Relevant Documentation Searches / References</strong><ul>${referencesHtml}</ul>`
+          : ""
+      }
+      <p class="note">
+        Generate the plan again after research. The plan will include a SAP documentation validation task
+        using the retrieved planning considerations or fallback recommendations.
+      </p>
+    `;
+  } catch (error) {
+    /*
+      This should only occur if the application server itself cannot be reached.
+      A local browser fallback is still produced instead of displaying an application failure.
+    */
+    const targetRelease = getValue("targetRelease");
+    const transformationType = getValue("transformationType");
 
-      const references = (data.references || [])
-        .map(reference => `• ${reference.title}: ${reference.url}`)
-        .join("\n");
+    const searchTerm =
+      `site:help.sap.com/docs "${targetRelease}" "${transformationType}"`;
 
-      resultBox.textContent =
-        `${data.answer || "No guide research result was returned."}` +
-        `${references ? `\n\nGrounded References:\n${references}` : ""}`;
-    } catch (error) {
-      resultBox.textContent =
-        `SAP guide research failed.\n\n${error.message}`;
-    }
+    sapResearch = {
+      source: "Browser Fallback SAP Help Search",
+      fallback: true,
+      answer:
+        "The application server could not be reached. Use the generated SAP Help Portal and Google site-restricted search links to validate applicable SAP documentation. The plan will include generic documentation validation activities.",
+      planningConsiderations: [
+        "Validate SAP Product Availability Matrix compatibility for target SAP release, application OS, database OS and hosting model.",
+        "Validate the upgrade, conversion, migration or installation procedure against official SAP Help documentation.",
+        "Validate SAP HANA Linux database operating system requirements where SAP HANA is in scope.",
+        "Validate all applicable SAP Notes and support documentation through SAP for Me or SAP Support Portal."
+      ],
+      references: [
+        {
+          title: `Search SAP Help Portal for ${targetRelease} / ${transformationType}`,
+          sapHelpUrl: `https://help.sap.com/docs/search?q=${encodeURIComponent(searchTerm)}`,
+          googleUrl: `https://www.google.com/search?q=${encodeURIComponent(searchTerm)}`
+        }
+      ]
+    };
+
+    resultBox.innerHTML = `
+      <strong>Research Source:</strong> Browser Fallback SAP Help Search<br />
+      <strong>Fallback Mode:</strong> The application server could not be reached. No application error was raised.
+      <pre style="white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;line-height:1.5;">${escapeHTML(sapResearch.answer)}</pre>
+      <ul>
+        <li>
+          <a href="${sapResearch.references[0].sapHelpUrl}" target="_blank" rel="noopener noreferrer">
+            Search SAP Help Portal
+          </a>
+          &nbsp;|&nbsp;
+          <a href="${sapResearch.references[0].googleUrl}" target="_blank" rel="noopener noreferrer">
+            Search Google restricted to help.sap.com/docs
+          </a>
+        </li>
+      </ul>
+    `;
   }
+}
 
   applyHanaRules();
 </script>
