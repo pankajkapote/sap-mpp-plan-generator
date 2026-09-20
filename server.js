@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT || 3000);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,10 +14,178 @@ const __dirname = path.dirname(__filename);
 app.use(express.json({ limit: "2mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
+function buildFallbackResearch(payload = {}, reason = "Gemini research is unavailable.") {
+  const {
+    transformationType = "",
+    sourceHosting = "",
+    targetHosting = "",
+    sourceApplicationOS = "",
+    sourceDatabase = "",
+    sourceDatabaseOS = "",
+    targetApplicationOS = "",
+    targetDatabase = "",
+    targetDatabaseOS = "",
+    sourceRelease = "",
+    targetRelease = "",
+    scope = ""
+  } = payload;
+
+  const isHanaInScope =
+    sourceDatabase === "SAP HANA" ||
+    targetDatabase === "SAP HANA";
+
+  const isConversion =
+    transformationType.toLowerCase().includes("conversion") ||
+    transformationType.toLowerCase().includes("s/4hana");
+
+  const isMigration =
+    transformationType.toLowerCase().includes("migration") ||
+    transformationType.toLowerCase().includes("lift & shift") ||
+    transformationType.toLowerCase().includes("rise");
+
+  const isUpgrade =
+    transformationType.toLowerCase().includes("upgrade");
+
+  const searchTerms = [
+    `"${targetRelease}" installation guide`,
+    `"${targetRelease}" system requirements`,
+    `"${targetRelease}" technical requirements`,
+    `"SAP Maintenance Planner" "${targetRelease}"`,
+    `"SAP Product Availability Matrix" "${targetRelease}"`
+  ];
+
+  if (isUpgrade) {
+    searchTerms.push(
+      `"Software Update Manager" upgrade guide`,
+      `"SAP SUM" maintenance planner upgrade`,
+      `"SAP system upgrade" technical preparation`
+    );
+  }
+
+  if (isConversion) {
+    searchTerms.push(
+      `"SAP S/4HANA conversion guide"`,
+      `"SAP S/4HANA" simplification item catalog`,
+      `"SAP Readiness Check" S/4HANA`,
+      `"SAP Custom Code Migration" S/4HANA`,
+      `"SAP Business Partner" conversion readiness`
+    );
+  }
+
+  if (isMigration) {
+    searchTerms.push(
+      `"SAP system copy guide"`,
+      `"SAP homogeneous system copy"`,
+      `"SAP heterogeneous system copy"`,
+      `"SAP database migration option" DMO`,
+      `"SAP migration" technical guide`
+    );
+  }
+
+  if (isHanaInScope) {
+    searchTerms.push(
+      `"SAP HANA" Linux operating system requirements`,
+      `"SAP HANA" hardware and software requirements`,
+      `"SAP HANA" database migration option DMO`,
+      `"SAP HANA" backup recovery guide`
+    );
+  }
+
+  if (targetHosting.toLowerCase().includes("rise")) {
+    searchTerms.push(
+      `"RISE with SAP" technical services guide`,
+      `"RISE with SAP" customer responsibilities`,
+      `"RISE with SAP" system conversion`,
+      `"RISE with SAP" connectivity guide`
+    );
+  }
+
+  const uniqueTerms = [...new Set(searchTerms)];
+
+  const references = uniqueTerms.map(term => {
+    const sapHelpQuery = encodeURIComponent(term);
+    const googleQuery = encodeURIComponent(`site:help.sap.com/docs ${term}`);
+
+    return {
+      title: `Search SAP Help Portal: ${term}`,
+      sapHelpUrl: `https://help.sap.com/docs/search?q=${sapHelpQuery}`,
+      googleUrl: `https://www.google.com/search?q=${googleQuery}`
+    };
+  });
+
+  const planningConsiderations = [
+    "Validate the SAP Product Availability Matrix for the selected SAP release, SAP application server operating system, database, database operating system and hosting model.",
+    "Validate applicable SAP implementation guides, installation guides, upgrade guides, migration guides and support documentation through SAP Help Portal and SAP for Me / SAP Support Portal.",
+    "Use SAP Maintenance Planner to validate compatible add-ons, maintenance dependencies, stack XML requirements, support package dependencies and technical prerequisites.",
+    "Use SAP Readiness Check where applicable to identify custom code findings, simplification items, sizing considerations, integration impacts, business process impacts and technical risks.",
+    "Validate source-to-target connectivity, firewall rules, DNS, certificates, backup, restore, monitoring, HA/DR, access model and operational support processes.",
+    "Use Production-derived refreshes for Sandbox, QA and Mock environments where approved by Security, Privacy, BASIS and DBA teams.",
+    "Run normal planning, preparation, non-production upgrades, testing and Production uptime activities during the normal single-shift calendar.",
+    "Schedule Mock and Production technical cutovers, smoke testing and initial reconciliation during the weekend 24x7 cutover calendar.",
+    "Apply a Production transport freeze before final Production cutover. Define the emergency transport process, approval path, rollback transport approach and final queue validation."
+  ];
+
+  if (isHanaInScope) {
+    planningConsiderations.push(
+      "SAP HANA database servers require Linux. Validate SAP application server operating system support separately against the SAP Product Availability Matrix for the chosen target release.",
+      `Source database: ${sourceDatabase} on ${sourceDatabaseOS}. Target database: ${targetDatabase} on ${targetDatabaseOS}. Validate database version/revision compatibility, migration procedure, backup/recovery, HA/DR and sizing.`
+    );
+  }
+
+  if (isConversion) {
+    planningConsiderations.push(
+      "For S/4HANA conversion scope, include simplification item analysis, custom code remediation, CVI and Business Partner readiness, functional impact assessment, authorization/Fiori assessment, financial reconciliation, data validation and business process acceptance."
+    );
+  }
+
+  if (isMigration) {
+    planningConsiderations.push(
+      "For migration, lift-and-shift or RISE transition scope, include system-copy/migration method validation, source/target bandwidth, data transfer throughput, migration downtime, rollback points, operational handover and disaster recovery validation."
+    );
+  }
+
+  if (targetHosting.toLowerCase().includes("rise")) {
+    planningConsiderations.push(
+      "For RISE with SAP, validate responsibility boundaries, service request lead times, customer-managed integrations, connectivity, identity and security responsibilities, transport processes, backup/restore processes, monitoring model and SAP operational procedures."
+    );
+  }
+
+  return {
+    source: "Fallback SAP Help Portal Search Plan",
+    fallback: true,
+    reason,
+    answer: [
+      "Gemini guide research is currently unavailable, quota-limited, not configured, or did not return a usable result.",
+      "",
+      "The application has generated targeted SAP Help Portal searches and Google site-restricted searches for help.sap.com/docs.",
+      "",
+      "Recommended planning considerations:",
+      ...planningConsiderations.map(item => `• ${item}`),
+      "",
+      "Project context:",
+      `• Transformation: ${transformationType || "Not specified"}`,
+      `• Source: Hosting=${sourceHosting || "Not specified"}; Application OS=${sourceApplicationOS || "Not specified"}; Database=${sourceDatabase || "Not specified"} on ${sourceDatabaseOS || "Not specified"}; Release=${sourceRelease || "Not specified"}`,
+      `• Target: Hosting=${targetHosting || "Not specified"}; Application OS=${targetApplicationOS || "Not specified"}; Database=${targetDatabase || "Not specified"} on ${targetDatabaseOS || "Not specified"}; Release=${targetRelease || "Not specified"}`,
+      `• Scope: ${scope || "Not specified"}`
+    ].join("\n"),
+    planningConsiderations,
+    references
+  };
+}
+
 app.post("/api/research/sap-guides", async (req, res) => {
   const payload = req.body || {};
 
-  const buildFallbackResearch = (reason = "Gemini research is unavailable.") => {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return res.json(
+        buildFallbackResearch(
+          payload,
+          "GEMINI_API_KEY is not configured on the application server."
+        )
+      );
+    }
+
     const {
       transformationType = "",
       sourceHosting = "",
@@ -33,175 +201,12 @@ app.post("/api/research/sap-guides", async (req, res) => {
       scope = ""
     } = payload;
 
-    const hanaInScope =
-      sourceDatabase === "SAP HANA" ||
-      targetDatabase === "SAP HANA";
-
-    const conversionInScope =
-      transformationType.includes("Conversion") ||
-      transformationType.includes("S/4HANA");
-
-    const migrationInScope =
-      transformationType.includes("Migration") ||
-      transformationType.includes("Lift & Shift") ||
-      transformationType.includes("RISE");
-
-    const upgradeInScope =
-      transformationType.includes("Upgrade");
-
-    const searchTerms = [
-      `"${targetRelease}" system requirements`,
-      `"${targetRelease}" installation guide`,
-      `"${targetRelease}" upgrade guide`,
-      `"${targetRelease}" maintenance planner`,
-      `"${targetRelease}" technical requirements`
-    ];
-
-    if (hanaInScope) {
-      searchTerms.push(
-        `"SAP HANA" Linux operating system requirements`,
-        `"SAP HANA" hardware and software requirements`,
-        `"SAP HANA" database migration option DMO guide`
-      );
-    }
-
-    if (conversionInScope) {
-      searchTerms.push(
-        `"SAP S/4HANA conversion guide"`,
-        `"SAP S/4HANA" simplification item catalog`,
-        `"SAP Readiness Check" S/4HANA conversion`,
-        `"Custom Code Migration" SAP S/4HANA`
-      );
-    }
-
-    if (upgradeInScope) {
-      searchTerms.push(
-        `"SUM" software update manager guide`,
-        `"SAP Maintenance Planner" upgrade planning`,
-        `"SAP system upgrade" technical preparation`
-      );
-    }
-
-    if (migrationInScope) {
-      searchTerms.push(
-        `"SAP system copy guide"`,
-        `"SAP homogeneous system copy"`,
-        `"SAP heterogeneous system copy"`,
-        `"SAP migration" database migration option`
-      );
-    }
-
-    if (targetHosting.includes("RISE")) {
-      searchTerms.push(
-        `"RISE with SAP" technical services guide`,
-        `"RISE with SAP" customer responsibilities`,
-        `"RISE with SAP" system conversion`
-      );
-    }
-
-    const uniqueTerms = [...new Set(searchTerms)];
-
-    const fallbackReferences = uniqueTerms.map(term => {
-      const encodedTerm = encodeURIComponent(term);
-
-      return {
-        title: `Search SAP Help Portal: ${term}`,
-        sapHelpUrl: `https://help.sap.com/docs/search?q=${encodedTerm}`,
-        googleUrl: `https://www.google.com/search?q=${encodeURIComponent(
-          `site:help.sap.com/docs ${term}`
-        )}`
-      };
-    });
-
-    const planningConsiderations = [
-      "Validate the selected SAP release, application server operating system, database version and hosting model against the SAP Product Availability Matrix (PAM).",
-      "Validate all SAP software maintenance, add-on compatibility, kernel requirements, Unicode requirements, support package dependencies and required SAP Notes through SAP for Me / SAP Support Portal.",
-      "Use SAP Maintenance Planner to validate stack XML, compatible add-ons, technical dependencies and maintenance requirements.",
-      "Use SAP Readiness Check where applicable to identify simplification items, custom code impacts, sizing considerations, business process impacts and integration risks.",
-      "Use Production-derived refreshes for Sandbox, QA and Mock landscapes when approved by security and data privacy teams.",
-      "Run non-production technical activities during the normal weekday single-shift calendar.",
-      "Run Mock and Production uptime activities during normal single-shift working periods, but schedule cutover, smoke testing and initial reconciliation in the weekend 24x7 cutover calendar.",
-      "Apply a Production transport freeze before the final Production cutover and define a formal emergency transport approval process."
-    ];
-
-    if (hanaInScope) {
-      planningConsiderations.push(
-        "SAP HANA database servers require Linux. The SAP application server operating system must be validated separately against the target SAP release and SAP PAM.",
-        `Source database platform: ${sourceDatabase} on ${sourceDatabaseOS}. Target database platform: ${targetDatabase} on ${targetDatabaseOS}. Confirm migration, backup, restore, HA/DR and database revision compatibility.`
-      );
-    }
-
-    if (conversionInScope) {
-      planningConsiderations.push(
-        "For S/4HANA conversion, include simplification item analysis, CVI readiness, custom code remediation, business partner readiness, Fiori/security assessment, financial data reconciliation and mandatory conversion checks."
-      );
-    }
-
-    if (migrationInScope) {
-      planningConsiderations.push(
-        "For migration or lift-and-shift scope, include source/target connectivity, backup/restore validation, system copy method, database migration method, data transfer throughput, cutover rollback points and DR validation."
-      );
-    }
-
-    if (targetHosting.includes("RISE")) {
-      planningConsiderations.push(
-        "For RISE with SAP, validate responsibility boundaries, service request lead times, connectivity, customer-managed integrations, identity/security responsibilities, transport process, backup/restore responsibilities and SAP operational procedures."
-      );
-    }
-
-    return {
-      source: "Fallback SAP Help Portal Search Plan",
-      fallback: true,
-      reason,
-      answer: [
-        "Gemini research is currently unavailable, has reached quota limits, or returned an error.",
-        "",
-        "The application has generated SAP Help Portal and Google site-restricted search links instead of failing.",
-        "",
-        "Recommended project planning considerations:",
-        ...planningConsiderations.map(item => `• ${item}`),
-        "",
-        "Project context:",
-        `• Transformation: ${transformationType}`,
-        `• Source: ${sourceHosting}; SAP Application OS: ${sourceApplicationOS}; Database: ${sourceDatabase} on ${sourceDatabaseOS}; Release: ${sourceRelease}`,
-        `• Target: ${targetHosting}; SAP Application OS: ${targetApplicationOS}; Database: ${targetDatabase} on ${targetDatabaseOS}; Release: ${targetRelease}`,
-        `• Scope: ${scope}`
-      ].join("\n"),
-      planningConsiderations,
-      references: fallbackReferences
-    };
-  };
-
-  try {
-    if (!process.env.GEMINI_API_KEY) {
-      return res.json(
-        buildFallbackResearch(
-          "Gemini API key is not configured on the server."
-        )
-      );
-    }
-
-    const {
-      transformationType,
-      sourceHosting,
-      targetHosting,
-      sourceApplicationOS,
-      sourceDatabase,
-      sourceDatabaseOS,
-      targetApplicationOS,
-      targetDatabase,
-      targetDatabaseOS,
-      sourceRelease,
-      targetRelease,
-      scope
-    } = payload;
-
     const prompt = `
 You are supporting an SAP transformation project planning team.
 
-Find official SAP Help Portal resources, SAP implementation guides,
-SAP roadmaps, SAP Community resources and publicly accessible SAP
-documentation relevant to this SAP transformation.
+Research official SAP Help Portal resources, implementation guides, installation guides,
+upgrade guides, migration guides, SAP roadmaps, publicly accessible SAP Community material,
+and other reliable SAP documentation relevant to the following project.
 
 Transformation Type:
 ${transformationType}
@@ -220,29 +225,30 @@ Database: ${targetDatabase}
 Database OS: ${targetDatabaseOS}
 SAP Release: ${targetRelease}
 
-Scope:
+Project Scope:
 ${scope}
 
-Return a concise response with these headings:
+Provide concise planning-oriented output with the following headings:
 
 1. Applicable SAP Guides and Documentation
-2. Important Planning Considerations
-3. Technical Readiness Activities
-4. Cutover and Downtime Considerations
-5. Key Risks and Assumptions
-6. Recommended SAP Documentation Links
+2. Technical Readiness Activities
+3. Upgrade, Conversion or Migration Planning Considerations
+4. Testing, Cutover and Downtime Considerations
+5. Risks, Assumptions and Dependencies
+6. Documentation Validation Actions
 
 Rules:
-- Do not invent SAP Notes, SAP URLs, or document titles.
-- Clearly state if a document must be verified in SAP for Me or SAP Support Portal.
-- Focus on project planning implications.
-- Mention SAP HANA and Linux requirements where relevant.
+- Do not invent SAP Note numbers, SAP URLs, guide titles or support documentation.
+- Clearly identify anything that needs validation in SAP for Me, SAP Support Portal, SAP Product Availability Matrix or SAP Maintenance Planner.
+- Mention that SAP HANA database servers require Linux when SAP HANA is in scope.
+- Explain that SAP application server OS compatibility is independent and must be verified against the SAP Product Availability Matrix for the selected release.
+- Focus on actionable project-plan tasks and dependencies.
 `;
 
     const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`,
+    const geminiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`,
       {
         method: "POST",
         headers: {
@@ -251,7 +257,11 @@ Rules:
         body: JSON.stringify({
           contents: [
             {
-              parts: [{ text: prompt }]
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
             }
           ],
           tools: [
@@ -263,38 +273,42 @@ Rules:
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    if (!geminiResponse.ok) {
+      const details = await geminiResponse.text();
 
       return res.json(
         buildFallbackResearch(
-          `Gemini API request was unavailable. HTTP status: ${response.status}. ${errorText}`
+          payload,
+          `Gemini request failed with HTTP ${geminiResponse.status}. ${details}`
         )
       );
     }
 
-    const data = await response.json();
+    const geminiData = await geminiResponse.json();
 
     const answer =
-      data?.candidates?.[0]?.content?.parts
+      geminiData?.candidates?.[0]?.content?.parts
         ?.map(part => part.text || "")
-        .join("\n") ||
-      "";
+        .join("\n")
+        .trim() || "";
 
-    if (!answer.trim()) {
+    if (!answer) {
       return res.json(
         buildFallbackResearch(
-          "Gemini returned no usable SAP documentation research result."
+          payload,
+          "Gemini returned no usable documentation research content."
         )
       );
     }
 
     const groundingChunks =
-      data?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+      geminiData?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
 
     const references = groundingChunks
       .map(chunk => {
-        if (!chunk.web?.uri) return null;
+        if (!chunk?.web?.uri) {
+          return null;
+        }
 
         return {
           title: chunk.web.title || "SAP Documentation Reference",
@@ -313,49 +327,17 @@ Rules:
   } catch (error) {
     return res.json(
       buildFallbackResearch(
+        payload,
         `Gemini research could not be completed. ${error.message}`
       )
     );
   }
 });
-    const data = await response.json();
 
-    const answer =
-      data?.candidates?.[0]?.content?.parts
-        ?.map(part => part.text || "")
-        .join("\n") ||
-      "No SAP guide research response was returned.";
-
-    const groundingChunks =
-      data?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-
-    const references = groundingChunks
-      .map(chunk => {
-        if (!chunk.web?.uri) return null;
-
-        return {
-          title: chunk.web.title || "SAP Reference",
-          url: chunk.web.uri
-        };
-      })
-      .filter(Boolean);
-
-    return res.json({
-      answer,
-      references
-    });
-  } catch (error) {
-    return res.status(500).json({
-      error: "Unable to complete SAP guide research.",
-      details: error.message
-    });
-  }
-});
-
-app.get("*", (_, res) => {
+app.get("*", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(port, () => {
-  console.log(`SAP MPP Planner is running at http://localhost:${port}`);
+  console.log(`SAP MPP Plan Generator is running at http://localhost:${port}`);
 });
