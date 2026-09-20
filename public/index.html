@@ -9,20 +9,18 @@
     :root {
       --navy: #082b52;
       --blue: #0b63b6;
-      --light-blue: #edf6ff;
-      --green: #16803a;
-      --orange: #b85c00;
-      --red: #b21d1d;
-      --ink: #1c2a3a;
-      --muted: #607086;
-      --line: #d6e0eb;
+      --blue-light: #edf6ff;
+      --green: #19743a;
+      --orange: #a95500;
+      --red: #9c1c1c;
+      --ink: #17273a;
+      --muted: #617188;
+      --line: #d7e1ec;
       --bg: #f4f7fb;
-      --white: #ffffff;
+      --white: #fff;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -33,9 +31,9 @@
     }
 
     header {
-      background: var(--navy);
-      color: white;
       padding: 22px 30px;
+      color: white;
+      background: var(--navy);
     }
 
     header h1 {
@@ -44,34 +42,34 @@
     }
 
     header p {
-      margin: 6px 0 0;
-      color: #c5d8f0;
+      margin: 7px 0 0;
+      color: #c7ddf4;
     }
 
     main {
       max-width: 1600px;
-      margin: 0 auto;
+      margin: auto;
       padding: 24px;
     }
 
     .card {
-      background: white;
+      margin-bottom: 18px;
+      padding: 20px;
+      background: var(--white);
       border: 1px solid var(--line);
       border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 10px rgba(0, 35, 75, 0.04);
+      box-shadow: 0 2px 10px rgba(10, 43, 82, .04);
     }
 
     h2 {
-      color: var(--navy);
       margin: 0 0 15px;
+      color: var(--navy);
       font-size: 19px;
     }
 
     h3 {
+      margin: 22px 0 10px;
       color: var(--blue);
-      margin: 20px 0 10px;
       font-size: 15px;
     }
 
@@ -81,36 +79,32 @@
       gap: 14px;
     }
 
-    .span2 {
-      grid-column: span 2;
-    }
-
-    .span4 {
-      grid-column: span 4;
-    }
+    .span2 { grid-column: span 2; }
+    .span4 { grid-column: span 4; }
 
     label {
       display: block;
-      font-weight: 700;
       margin-bottom: 6px;
       font-size: 12px;
+      font-weight: 700;
     }
 
-    input,
-    textarea,
-    select,
-    button {
+    input, select, textarea, button {
       font: inherit;
     }
 
-    input,
-    textarea,
-    select {
+    input, select, textarea {
       width: 100%;
       padding: 9px;
-      border: 1px solid #b9c8d8;
+      border: 1px solid #b9c7d8;
       border-radius: 6px;
       background: white;
+    }
+
+    input:disabled, select:disabled {
+      cursor: not-allowed;
+      color: #627184;
+      background: #edf1f6;
     }
 
     textarea {
@@ -119,27 +113,23 @@
     }
 
     button {
-      padding: 10px 15px;
+      padding: 10px 14px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--blue);
       border: 0;
       border-radius: 6px;
-      cursor: pointer;
-      color: white;
-      background: var(--blue);
-      font-weight: 700;
     }
 
-    button:hover {
-      filter: brightness(0.94);
-    }
+    button:hover { filter: brightness(.94); }
 
     button.secondary {
-      background: #e5edf7;
       color: var(--navy);
+      background: #e6eef8;
     }
 
-    button.warning {
-      background: var(--orange);
-    }
+    button.warning { background: var(--orange); }
 
     .actions {
       display: flex;
@@ -152,13 +142,13 @@
       display: flex;
       flex-wrap: wrap;
       gap: 18px;
-      margin-top: 6px;
+      margin-top: 8px;
     }
 
     .checks label {
+      margin: 0;
       font-size: 14px;
       font-weight: normal;
-      margin: 0;
     }
 
     .checks input {
@@ -167,61 +157,77 @@
     }
 
     .note {
+      margin: 10px 0 0;
       color: var(--muted);
       font-size: 12px;
       line-height: 1.45;
-      margin: 10px 0 0;
     }
 
-    .warning-box {
+    .message {
       display: none;
-      background: #fff4dd;
-      border-left: 4px solid var(--orange);
-      padding: 12px;
-      margin-top: 12px;
-      color: #714100;
-      line-height: 1.45;
+      margin-top: 14px;
+      padding: 13px;
+      line-height: 1.5;
+      border-left: 4px solid var(--blue);
     }
 
-    .success-box {
-      display: none;
+    .message.info {
+      color: #123f6c;
+      background: var(--blue-light);
+      border-color: var(--blue);
+    }
+
+    .message.success {
+      color: #145c2b;
       background: #ebf9ef;
-      border-left: 4px solid var(--green);
-      padding: 12px;
-      margin-top: 12px;
-      color: #176231;
-      line-height: 1.45;
+      border-color: var(--green);
+    }
+
+    .message.warning {
+      color: #704100;
+      background: #fff3dd;
+      border-color: var(--orange);
     }
 
     #guideResults {
       display: none;
-      white-space: pre-wrap;
-      line-height: 1.5;
-      background: var(--light-blue);
-      border-left: 4px solid var(--blue);
+      margin-top: 15px;
       padding: 15px;
-      margin-top: 14px;
+      line-height: 1.5;
+      background: var(--blue-light);
+      border-left: 4px solid var(--blue);
+    }
+
+    #guideResults pre {
+      overflow-wrap: anywhere;
+      font-family: Arial, Helvetica, sans-serif;
+      white-space: pre-wrap;
+    }
+
+    #guideResults a {
+      color: var(--blue);
+      font-weight: 700;
     }
 
     .summary {
       display: grid;
-      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      grid-template-columns: repeat(5, minmax(160px, 1fr));
       gap: 12px;
       margin-bottom: 15px;
     }
 
     .metric {
+      padding: 12px;
+      background: #fbfdff;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 12px;
-      background: #fcfdff;
     }
 
     .metric b {
       display: block;
-      font-size: 20px;
-      color: var(--blue);
       margin-bottom: 4px;
+      color: var(--blue);
+      font-size: 18px;
     }
 
     .table-wrap {
@@ -231,90 +237,65 @@
     }
 
     table {
-      border-collapse: collapse;
       width: 100%;
-      min-width: 1750px;
+      min-width: 1800px;
+      border-collapse: collapse;
     }
 
     th {
-      text-align: left;
-      background: var(--navy);
-      color: white;
-      padding: 10px;
-      font-size: 12px;
       position: sticky;
       top: 0;
+      padding: 10px;
+      color: white;
+      font-size: 12px;
+      text-align: left;
+      background: var(--navy);
     }
 
     td {
       padding: 9px;
-      border-bottom: 1px solid var(--line);
-      vertical-align: top;
       font-size: 12px;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
     }
 
-    tbody tr:hover {
-      background: #f4f9ff;
-    }
+    tbody tr:hover { background: #f4f9ff; }
 
     .phase {
       color: var(--blue);
-      font-weight: bold;
+      font-weight: 700;
     }
 
-    .calendar-normal {
-      color: #1d5d90;
-      font-weight: bold;
+    .normal-calendar {
+      color: #155c8c;
+      font-weight: 700;
     }
 
-    .calendar-cutover {
-      color: #aa5300;
-      font-weight: bold;
+    .cutover-calendar {
+      color: #9d4b00;
+      font-weight: 700;
     }
 
     .small {
-      font-size: 11px;
       color: var(--muted);
+      font-size: 11px;
       line-height: 1.4;
     }
 
     @media (max-width: 980px) {
-      .grid {
-        grid-template-columns: repeat(2, minmax(180px, 1fr));
-      }
-
-      .span2,
-      .span4 {
-        grid-column: span 2;
-      }
-
-      .summary {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      .grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+      .span2, .span4 { grid-column: span 2; }
+      .summary { grid-template-columns: repeat(2, 1fr); }
     }
 
     @media print {
-      header,
-      .input-section,
-      .actions,
-      #guideResults,
-      .warning-box,
-      .success-box {
+      header, .input-section, .actions, #guideResults, .message {
         display: none !important;
       }
 
-      main {
-        padding: 0;
-      }
-
-      .card {
-        border: 0;
-        box-shadow: none;
-      }
-
-      .table-wrap {
-        overflow: visible;
-      }
+      main { padding: 0; }
+      .card { border: 0; box-shadow: none; }
+      .table-wrap { overflow: visible; }
     }
   </style>
 </head>
@@ -322,14 +303,12 @@
 <body>
 <header>
   <h1>SAP MPP Plan Generator</h1>
-  <p>
-    SAP Upgrade · S/4HANA Conversion · System Migration · RISE · Installation · Lift & Shift
-  </p>
+  <p>SAP Upgrade · S/4HANA Conversion · Migration · RISE · Installation · Lift & Shift</p>
 </header>
 
 <main>
   <section class="card input-section">
-    <h2>1. Project, Landscape and Technical Inputs</h2>
+    <h2>1. Project and Landscape Details</h2>
 
     <div class="grid">
       <div>
@@ -389,11 +368,11 @@
 
       <div>
         <label>Hypercare Duration (Business Days)</label>
-        <input id="hypercareDays" type="number" min="1" value="10" />
+        <input id="hypercareDays" min="1" type="number" value="10" />
       </div>
     </div>
 
-    <h3>Source SAP Technical Stack</h3>
+    <h3>Source Technical Stack</h3>
 
     <div class="grid">
       <div>
@@ -441,7 +420,7 @@
       </div>
     </div>
 
-    <h3>Target SAP Technical Stack</h3>
+    <h3>Target Technical Stack</h3>
 
     <div class="grid">
       <div>
@@ -489,95 +468,73 @@
       </div>
 
       <div class="span4">
-        <div id="hanaWarning" class="warning-box"></div>
-        <div id="hanaSuccess" class="success-box"></div>
+        <div id="hanaMessage" class="message success"></div>
       </div>
 
       <div class="span4">
-        <label>Scope, Interfaces, Constraints and Assumptions</label>
-        <textarea id="scope">
-Include business-critical integrations, custom code remediation, security validation, financial reconciliation, test execution, performance validation, operational readiness and formal business sign-off.
-        </textarea>
+        <label>Project Scope, Interfaces, Constraints and Assumptions</label>
+        <textarea id="scope">Include business-critical integrations, custom code remediation, security validation, financial reconciliation, test execution, performance validation, operational readiness and formal business sign-off.</textarea>
       </div>
     </div>
   </section>
 
   <section class="card input-section">
-    <h2>2. Testing, Refresh and Mock Cutover Inputs</h2>
+    <h2>2. Refresh, Testing and Cutover Inputs</h2>
 
     <div class="grid">
       <div>
         <label>Unit Testing Duration (Business Days)</label>
-        <input id="unitTestingDays" type="number" min="1" value="10" />
+        <input id="unitTestingDays" min="1" type="number" value="10" />
       </div>
 
       <div>
         <label>SIT Duration (Business Days)</label>
-        <input id="sitDays" type="number" min="1" value="15" />
+        <input id="sitDays" min="1" type="number" value="15" />
       </div>
 
       <div>
         <label>UAT Duration (Business Days)</label>
-        <input id="uatDays" type="number" min="1" value="15" />
+        <input id="uatDays" min="1" type="number" value="15" />
       </div>
 
       <div>
-        <label>Mock Cutover Runs Required</label>
-        <input id="mockRuns" type="number" min="0" value="2" />
+        <label>Number of Mock Cutovers</label>
+        <input id="mockRuns" min="0" type="number" value="2" />
       </div>
 
       <div>
         <label>Sandbox Refresh Duration (Business Days)</label>
-        <input id="sandboxRefreshDays" type="number" min="1" value="5" />
+        <input id="sandboxRefreshDays" min="1" type="number" value="5" />
       </div>
 
       <div>
         <label>QA Refresh Duration (Business Days)</label>
-        <input id="qaRefreshDays" type="number" min="1" value="5" />
+        <input id="qaRefreshDays" min="1" type="number" value="5" />
       </div>
 
       <div>
         <label>Mock Production Refresh Duration (Business Days)</label>
-        <input id="mockRefreshDays" type="number" min="1" value="5" />
+        <input id="mockRefreshDays" min="1" type="number" value="5" />
       </div>
 
       <div>
-        <label>Production Transport Freeze Duration (Business Days)</label>
-        <input id="transportFreezeDays" type="number" min="1" value="10" />
+        <label>Production Transport Freeze (Business Days)</label>
+        <input id="transportFreezeDays" min="1" type="number" value="10" />
       </div>
     </div>
 
     <div class="checks">
-      <label>
-        <input id="refreshSandbox" type="checkbox" checked />
-        Refresh Sandbox from Production before upgrade
-      </label>
-
-      <label>
-        <input id="refreshQA" type="checkbox" checked />
-        Refresh QA from Production before upgrade
-      </label>
-
-      <label>
-        <input id="transportFreezeEnabled" type="checkbox" checked />
-        Enable Production transport freeze
-      </label>
-
-      <label>
-        <input id="includeSecurity" type="checkbox" checked />
-        Include Security and SoD remediation
-      </label>
-
-      <label>
-        <input id="includeDowntimeOptimization" type="checkbox" checked />
-        Include downtime optimization workstream
-      </label>
+      <label><input id="refreshSandbox" checked type="checkbox" /> Refresh Sandbox from Production before upgrade</label>
+      <label><input id="refreshQA" checked type="checkbox" /> Refresh QA from Production before upgrade</label>
+      <label><input id="transportFreezeEnabled" checked type="checkbox" /> Enable Production transport freeze</label>
+      <label><input id="includeSecurity" checked type="checkbox" /> Include Security and SoD remediation</label>
+      <label><input id="includeDowntimeOptimization" checked type="checkbox" /> Include downtime optimization workstream</label>
     </div>
 
     <p class="note">
-      Mock systems are built from a Production refresh by default. Non-production system upgrades,
-      test activities, planning and preparation use the normal weekday single-shift calendar.
-      Mock and Production cutovers are scheduled in weekend 24×7 mode.
+      Mock systems are built from a Production refresh by default. Non-production upgrades, planning,
+      testing and uptime preparation use the weekday single-shift calendar. Mock and Production
+      technical cutovers use the Weekend 24×7 Cutover Calendar.
     </p>
   </section>
 
@@ -599,7 +556,7 @@ Include business-critical integrations, custom code remediation, security valida
       </div>
 
       <div>
-        <label>Normal Shift</label>
+        <label>Normal Working Shift</label>
         <select id="normalShift">
           <option value="8">Single Shift (8 Hours)</option>
           <option value="16">Two Shifts (16 Hours)</option>
@@ -607,36 +564,34 @@ Include business-critical integrations, custom code remediation, security valida
       </div>
 
       <div>
-        <label>Weekend Cutover Window</label>
+        <label>Cutover Scheduling Window</label>
         <select id="cutoverWindow">
-          <option value="weekend247">Saturday 00:00 to Monday 00:00</option>
+          <option value="weekend247">Weekend 24×7</option>
           <option value="custom">Weekend 24×7 Custom Window</option>
         </select>
       </div>
 
       <div class="span4">
-        <label>Holiday Dates — One Date per Line</label>
-        <textarea
-          id="holidayDates"
-          placeholder="Example:
+        <label>Holiday Dates — One ISO Date per Line</label>
+        <textarea id="holidayDates" placeholder="Example:
 2026-12-25
 2026-12-26
 2027-01-01"></textarea>
 
         <p class="note">
-          Holidays are excluded from normal working activities. Weekend 24×7 cutover activities
-          are not automatically stopped for holidays. Validate resource availability separately.
+          Holidays are excluded from normal weekday work. Weekend cutovers remain scheduled in
+          24×7 mode; resource availability for holiday weekends must be validated by PMO.
         </p>
       </div>
     </div>
   </section>
 
   <section class="card input-section">
-    <h2>4. Generate, Research and Export</h2>
+    <h2>4. SAP Guide Research and Exports</h2>
 
     <div class="actions">
       <button onclick="generatePlan()">Generate MPP Plan</button>
-      <button class="warning" onclick="researchSAPGuides()">Research SAP Guides with Gemini</button>
+      <button class="warning" onclick="researchSAPGuides()">Research SAP Guides</button>
       <button class="secondary" onclick="exportCSV()">Export CSV</button>
       <button class="secondary" onclick="exportExcel()">Export Excel-Compatible XLS</button>
       <button class="secondary" onclick="exportProjectXML()">Export Microsoft Project XML</button>
@@ -644,9 +599,10 @@ Include business-critical integrations, custom code remediation, security valida
     </div>
 
     <p class="note">
-      Microsoft Project XML can be imported directly into Microsoft Project and saved as a native
-      `.mpp` file. Direct native `.mpp` generation requires a server-side MPP library such as
-      Aspose.Tasks or MPXJ.
+      Research first and then generate the plan again. Gemini research is attempted through
+      <code>/api/research/sap-guides</code>. If unavailable, quota-limited, or if the backend
+      cannot be reached, the page creates targeted SAP Help Portal and Google
+      <code>site:help.sap.com/docs</code> search links without failing.
     </p>
 
     <div id="guideResults"></div>
@@ -655,11 +611,11 @@ Include business-critical integrations, custom code remediation, security valida
   <section class="card">
     <h2>Generated SAP Project Plan</h2>
 
-    <div class="summary" id="summary">
+    <div id="summary" class="summary">
       <div class="metric"><b>-</b>Tasks</div>
-      <div class="metric"><b>-</b>Work Hours</div>
-      <div class="metric"><b>-</b>Mock Cutovers</div>
-      <div class="metric"><b>-</b>Production Cutover</div>
+      <div class="metric"><b>-</b>Planned Work Hours</div>
+      <div class="metric"><b>-</b>Mock Activities</div>
+      <div class="metric"><b>-</b>Production Cutover Start</div>
       <div class="metric"><b>-</b>Indicative Finish</div>
     </div>
 
@@ -683,9 +639,7 @@ Include business-critical integrations, custom code remediation, security valida
         </thead>
         <tbody id="planRows">
           <tr>
-            <td colspan="12" class="small">
-              Enter project inputs and select Generate MPP Plan.
-            </td>
+            <td colspan="12" class="small">Enter project details and select Generate MPP Plan.</td>
           </tr>
         </tbody>
       </table>
@@ -697,12 +651,12 @@ Include business-critical integrations, custom code remediation, security valida
   let plan = [];
 
   let sapResearch = {
-  source: "Not researched",
-  fallback: false,
-  answer: "",
-  planningConsiderations: [],
-  references: []
-};
+    source: "Not researched",
+    fallback: false,
+    answer: "",
+    planningConsiderations: [],
+    references: []
+  };
 
   const NORMAL_CALENDAR = "Normal Working Calendar";
   const CUTOVER_CALENDAR = "Weekend 24x7 Cutover Calendar";
@@ -717,30 +671,26 @@ Include business-critical integrations, custom code remediation, security valida
     new Date().toISOString().slice(0, 10);
 
   function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, character => {
-      return {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-      }[character];
-    });
+    return String(value ?? "").replace(/[&<>"']/g, character => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    }[character]));
   }
 
-  function formatDateTime(value) {
-    if (!value) return "";
+  function xmlEscape(value) {
+    return String(value ?? "").replace(/[&<>"']/g, character => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;"
+    }[character]));
+  }
 
-    const date = new Date(value);
-
-    return date.toLocaleString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false
-    });
+  function getShiftHours() {
+    return Number(getValue("normalShift")) || 8;
   }
 
   function applyHanaRules() {
@@ -750,119 +700,77 @@ Include business-critical integrations, custom code remediation, security valida
     const sourceDatabaseOS = document.getElementById("sourceDatabaseOS");
     const targetDatabaseOS = document.getElementById("targetDatabaseOS");
 
-    const warningBox = document.getElementById("hanaWarning");
-    const successBox = document.getElementById("hanaSuccess");
+    const message = document.getElementById("hanaMessage");
 
-    warningBox.style.display = "none";
-    successBox.style.display = "none";
-
-    const hanaMessages = [];
+    sourceDatabaseOS.disabled = sourceDatabase === "SAP HANA";
+    targetDatabaseOS.disabled = targetDatabase === "SAP HANA";
 
     if (sourceDatabase === "SAP HANA") {
       sourceDatabaseOS.value = "Linux";
-      sourceDatabaseOS.disabled = true;
-      hanaMessages.push("Source SAP HANA database OS has been set to Linux.");
-    } else {
-      sourceDatabaseOS.disabled = false;
     }
 
     if (targetDatabase === "SAP HANA") {
       targetDatabaseOS.value = "Linux";
-      targetDatabaseOS.disabled = true;
-      hanaMessages.push("Target SAP HANA database OS has been set to Linux.");
-    } else {
-      targetDatabaseOS.disabled = false;
     }
 
     if (sourceDatabase === "SAP HANA" || targetDatabase === "SAP HANA") {
-      successBox.style.display = "block";
-      successBox.innerHTML = `
-        <strong>SAP HANA Rule Applied:</strong><br />
-        SAP HANA database servers require Linux. The SAP application server OS is managed
-        independently and may be Linux, Windows Server, AIX, IBM i, HP-UX, Solaris or another
-        SAP-supported platform, subject to the SAP Product Availability Matrix and the selected
-        SAP release.
+      message.style.display = "block";
+      message.innerHTML = `
+        <strong>SAP HANA Database Rule Applied</strong><br />
+        SAP HANA database servers require Linux. The SAP application server OS is selected independently
+        and may be Linux, Windows Server, AIX, IBM i, HP-UX, Solaris, or another SAP-supported platform,
+        subject to SAP Product Availability Matrix validation for the selected product and release.
       `;
-    }
-
-    if (
-      sourceDatabase === "SAP HANA" &&
-      getValue("sourceDatabaseOS") !== "Linux"
-    ) {
-      hanaMessages.push("Source SAP HANA database requires Linux.");
-    }
-
-    if (
-      targetDatabase === "SAP HANA" &&
-      getValue("targetDatabaseOS") !== "Linux"
-    ) {
-      hanaMessages.push("Target SAP HANA database requires Linux.");
-    }
-
-    if (hanaMessages.length > 0) {
-      warningBox.style.display = "block";
-      warningBox.textContent = hanaMessages.join(" ");
+    } else {
+      message.style.display = "none";
+      message.innerHTML = "";
     }
   }
 
-  function getHolidaySet() {
+  function getHolidays() {
     return new Set(
       getValue("holidayDates")
         .split(/\r?\n/)
-        .map(date => date.trim())
+        .map(item => item.trim())
         .filter(Boolean)
     );
   }
 
-  function toDate(dateTime) {
-    return new Date(dateTime);
-  }
-
-  function toISODate(date) {
-    return new Date(
-      date.getTime() - date.getTimezoneOffset() * 60000
-    ).toISOString().slice(0, 10);
-  }
-
-  function isHoliday(date) {
-    return getHolidaySet().has(toISODate(date));
+  function dateKey(date) {
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
   }
 
   function isNormalWorkingDay(date) {
     const day = date.getDay();
-    const calendar = getValue("workingWeek");
+    const isHoliday = getHolidays().has(dateKey(date));
 
-    if (isHoliday(date)) return false;
+    if (isHoliday) return false;
 
-    if (calendar === "sun-thu") {
+    if (getValue("workingWeek") === "sun-thu") {
       return day >= 0 && day <= 4;
     }
 
     return day >= 1 && day <= 5;
   }
 
-  function getShiftHours() {
-    return Number(getValue("normalShift")) || 8;
-  }
-
   function moveToNormalShiftStart(date) {
-    let current = new Date(date);
+    const current = new Date(date);
+    const shiftStart = 8;
+    const shiftEnd = shiftStart + getShiftHours();
 
     while (!isNormalWorkingDay(current)) {
       current.setDate(current.getDate() + 1);
-      current.setHours(8, 0, 0, 0);
+      current.setHours(shiftStart, 0, 0, 0);
     }
 
-    const normalStartHour = 8;
-    const normalEndHour = normalStartHour + getShiftHours();
-
-    if (current.getHours() < normalStartHour) {
-      current.setHours(normalStartHour, 0, 0, 0);
+    if (current.getHours() < shiftStart) {
+      current.setHours(shiftStart, 0, 0, 0);
     }
 
-    if (current.getHours() >= normalEndHour) {
+    if (current.getHours() >= shiftEnd) {
       current.setDate(current.getDate() + 1);
-      current.setHours(normalStartHour, 0, 0, 0);
+      current.setHours(shiftStart, 0, 0, 0);
 
       while (!isNormalWorkingDay(current)) {
         current.setDate(current.getDate() + 1);
@@ -872,24 +780,25 @@ Include business-critical integrations, custom code remediation, security valida
     return current;
   }
 
-  function addNormalWorkingHours(startDate, hours) {
+  function addNormalWorkingHours(startDate, durationHours) {
     let current = moveToNormalShiftStart(startDate);
-    let remainingHours = Number(hours);
-    const shiftStartHour = 8;
-    const shiftEndHour = shiftStartHour + getShiftHours();
+    let remaining = Number(durationHours);
 
-    while (remainingHours > 0) {
+    const shiftStart = 8;
+    const shiftEnd = shiftStart + getShiftHours();
+
+    while (remaining > 0) {
       current = moveToNormalShiftStart(current);
 
-      const availableHours = shiftEndHour - current.getHours();
-      const applicableHours = Math.min(remainingHours, availableHours);
+      const hoursAvailableToday = shiftEnd - current.getHours();
+      const hoursToAdd = Math.min(remaining, hoursAvailableToday);
 
-      current.setHours(current.getHours() + applicableHours);
-      remainingHours -= applicableHours;
+      current.setHours(current.getHours() + hoursToAdd);
+      remaining -= hoursToAdd;
 
-      if (remainingHours > 0) {
+      if (remaining > 0) {
         current.setDate(current.getDate() + 1);
-        current.setHours(shiftStartHour, 0, 0, 0);
+        current.setHours(shiftStart, 0, 0, 0);
       }
     }
 
@@ -904,30 +813,7 @@ Include business-critical integrations, custom code remediation, security valida
     }
 
     current.setHours(0, 0, 0, 0);
-
     return current;
-  }
-
-  function getTaskStartFromPredecessors(taskItem) {
-    const projectStart = new Date(getValue("projectStartDate") + "T08:00:00");
-
-    if (!taskItem.predecessors || taskItem.predecessors.length === 0) {
-      return projectStart;
-    }
-
-    const predecessorTasks = plan.filter(item =>
-      taskItem.predecessors.includes(item.id)
-    );
-
-    if (predecessorTasks.length === 0) {
-      return projectStart;
-    }
-
-    return predecessorTasks.reduce((latest, predecessor) => {
-      const predecessorFinish = new Date(predecessor.finish);
-
-      return predecessorFinish > latest ? predecessorFinish : latest;
-    }, projectStart);
   }
 
   function addTask({
@@ -941,7 +827,7 @@ Include business-critical integrations, custom code remediation, security valida
     executionMode = NORMAL_MODE,
     transportFreezeImpact = false
   }) {
-    const item = {
+    plan.push({
       id: plan.length + 1,
       phase,
       name,
@@ -954,74 +840,74 @@ Include business-critical integrations, custom code remediation, security valida
       transportFreezeImpact,
       start: null,
       finish: null
-    };
+    });
 
-    plan.push(item);
+    return plan.length;
+  }
 
-    return item.id;
+  function getLatestPredecessorFinish(task) {
+    const defaultDate = new Date(getValue("projectStartDate") + "T08:00:00");
+
+    if (!task.predecessors.length) return defaultDate;
+
+    const predecessors = plan.filter(item => task.predecessors.includes(item.id));
+
+    if (!predecessors.length) return defaultDate;
+
+    return predecessors.reduce((latest, item) => {
+      const finish = new Date(item.finish);
+      return finish > latest ? finish : latest;
+    }, defaultDate);
   }
 
   function calculateSchedule() {
-    for (const item of plan) {
-      const predecessorFinish = getTaskStartFromPredecessors(item);
+    for (const task of plan) {
+      const predecessorFinish = getLatestPredecessorFinish(task);
+      const predecessorTasks = plan.filter(item => task.predecessors.includes(item.id));
 
-      if (item.calendar === CUTOVER_CALENDAR) {
-        const predecessorTasks = plan.filter(task =>
-          item.predecessors.includes(task.id)
+      if (task.calendar === CUTOVER_CALENDAR) {
+        const followsCutoverTask = predecessorTasks.some(
+          item => item.calendar === CUTOVER_CALENDAR
         );
 
-        const immediateCutoverPredecessor = predecessorTasks.some(
-          task => task.calendar === CUTOVER_CALENDAR
-        );
+        task.start = followsCutoverTask
+          ? new Date(predecessorFinish)
+          : getNextWeekendCutoverStart(predecessorFinish);
 
-        if (immediateCutoverPredecessor) {
-          item.start = new Date(predecessorFinish);
-        } else {
-          item.start = getNextWeekendCutoverStart(predecessorFinish);
-        }
-
-        item.finish = new Date(
-          item.start.getTime() + item.durationHours * 60 * 60 * 1000
+        task.finish = new Date(
+          task.start.getTime() + task.durationHours * 60 * 60 * 1000
         );
       } else {
-        item.start = moveToNormalShiftStart(predecessorFinish);
-        item.finish = addNormalWorkingHours(item.start, item.durationHours);
+        task.start = moveToNormalShiftStart(predecessorFinish);
+        task.finish = addNormalWorkingHours(task.start, task.durationHours);
       }
     }
   }
 
   function generatePlan() {
     applyHanaRules();
-
     plan = [];
 
     const transformationType = getValue("transformationType");
-    const sourceHosting = getValue("sourceHosting");
-    const targetHosting = getValue("targetHosting");
+    const mockRuns = Number(getValue("mockRuns"));
+    const shiftHours = getShiftHours();
 
     const sourceStack =
-      `${getValue("sourceApplicationOS")} Application OS / ` +
-      `${getValue("sourceDatabase")} Database on ${getValue("sourceDatabaseOS")} / ` +
-      `${getValue("sourceRelease")}`;
+      `Hosting: ${getValue("sourceHosting")}; Application OS: ${getValue("sourceApplicationOS")}; ` +
+      `Database: ${getValue("sourceDatabase")} on ${getValue("sourceDatabaseOS")}; ` +
+      `Release: ${getValue("sourceRelease")}`;
 
     const targetStack =
-      `${getValue("targetApplicationOS")} Application OS / ` +
-      `${getValue("targetDatabase")} Database on ${getValue("targetDatabaseOS")} / ` +
-      `${getValue("targetRelease")}`;
-
-    const mockRuns = Number(getValue("mockRuns"));
-    const unitHours = Number(getValue("unitTestingDays")) * getShiftHours();
-    const sitHours = Number(getValue("sitDays")) * getShiftHours();
-    const uatHours = Number(getValue("uatDays")) * getShiftHours();
-    const hypercareHours = Number(getValue("hypercareDays")) * getShiftHours();
+      `Hosting: ${getValue("targetHosting")}; Application OS: ${getValue("targetApplicationOS")}; ` +
+      `Database: ${getValue("targetDatabase")} on ${getValue("targetDatabaseOS")}; ` +
+      `Release: ${getValue("targetRelease")}`;
 
     const kickoff = addTask({
       phase: "Planning",
       name: "Project kickoff, governance, RACI and RAID process",
       durationHours: 24,
       teams: "PMO, BASIS, Functional, ABAP, Security, Infra, Business",
-      details:
-        "Establish project governance, workstreams, steering committee, escalation model, RAID process, reporting cadence and project milestones."
+      details: "Establish governance, workstreams, steering committee, reporting cadence, decision rights, RAID process and escalation path."
     });
 
     const discovery = addTask({
@@ -1030,8 +916,7 @@ Include business-critical integrations, custom code remediation, security valida
       durationHours: 64,
       predecessors: [kickoff],
       teams: "BASIS, Infra, DBA, Functional, Integration, Security",
-      details:
-        `Assess systems: ${getValue("landscapeSystems")}. Identify interfaces, jobs, custom code, add-ons, data volumes, HA/DR, network dependencies and operational dependencies.`
+      details: `Assess landscape systems: ${getValue("landscapeSystems")}. Identify integrations, jobs, custom code, add-ons, interfaces, volumes, HA/DR, network and operational dependencies.`
     });
 
     const readiness = addTask({
@@ -1039,12 +924,11 @@ Include business-critical integrations, custom code remediation, security valida
       name: "SAP readiness checks and compatibility assessment",
       durationHours: 56,
       predecessors: [kickoff],
-      teams: "BASIS, Functional, ABAP, Security",
-      details:
-        `Perform applicable SAP readiness checks, simplification item analysis, add-on compatibility checks, custom-code assessment and technical release compatibility assessment. Source: ${sourceStack}. Target: ${targetStack}.`
+      teams: "BASIS, Functional, ABAP, Security, DBA",
+      details: `Perform applicable SAP readiness checks, add-on compatibility, custom-code analysis, simplification item checks and technical release compatibility validation. Source: ${sourceStack}. Target: ${targetStack}.`
     });
 
-    const sapDocumentationValidation = addTask({
+    const documentationValidation = addTask({
       phase: "Planning",
       name: "SAP documentation, guide and SAP Note validation",
       durationHours: 32,
@@ -1052,11 +936,11 @@ Include business-critical integrations, custom code remediation, security valida
       teams: "BASIS, Functional, ABAP, DBA, Infra, Security, PMO",
       details:
         `Research source: ${sapResearch.source}. ` +
-        `Validate relevant official SAP Help Portal documentation, SAP Product Availability Matrix, SAP Maintenance Planner results, SAP Readiness Check findings, SAP Notes and implementation guides. ` +
-        `Research findings: ${
+        `Validate SAP Help documentation, Product Availability Matrix, Maintenance Planner output, Readiness Check results, SAP Notes and applicable implementation guides. ` +
+        `${
           sapResearch.planningConsiderations.length
             ? sapResearch.planningConsiderations.join(" ")
-            : "No research findings are currently stored. Run SAP Guide Research before generating the plan."
+            : "Run SAP Guide Research to add specific documentation validation recommendations."
         }`
     });
 
@@ -1064,10 +948,9 @@ Include business-critical integrations, custom code remediation, security valida
       phase: "Planning",
       name: "Target architecture, hosting, sizing and connectivity design",
       durationHours: 64,
-      predecessors: [kickoff, sapDocumentationValidation],
+      predecessors: [kickoff, documentationValidation],
       teams: "Infra, BASIS, DBA, Security, Integration",
-      details:
-        `Source Hosting: ${sourceHosting}. Target Hosting: ${targetHosting}. Define target architecture, sizing, network, firewall, DNS, backup, monitoring, HA/DR and access requirements.`
+      details: `Define sizing, network, firewall, DNS, storage, backup, monitoring, HA/DR, connectivity and access design. ${targetStack}.`
     });
 
     const testStrategy = addTask({
@@ -1076,61 +959,55 @@ Include business-critical integrations, custom code remediation, security valida
       durationHours: 48,
       predecessors: [kickoff],
       teams: "QA, Functional, ABAP, Integration, Business, Security",
-      details:
-        "Define Unit Testing, SIT, UAT, regression testing, interface testing, performance testing, security testing, reconciliation testing and business sign-off criteria."
+      details: "Define Unit Testing, SIT, UAT, regression, interface, performance, security, reconciliation and business sign-off criteria."
     });
 
     const cutoverStrategy = addTask({
       phase: "Planning",
       name: "Cutover, rollback and downtime strategy",
       durationHours: 56,
-      predecessors: [discovery, readiness, sapDocumentationValidation],
+      predecessors: [discovery, readiness, documentationValidation],
       teams: "PMO, BASIS, DBA, Infra, Functional, ABAP, Integration, Security",
-      details:
-        "Define detailed cutover approach, business downtime window, rollback decision points, communication plan, command center model, cutover workstreams and go/no-go criteria."
+      details: "Define cutover workstreams, weekend downtime window, rollback decision points, communications, command center model, go/no-go process and detailed cutover runbook."
     });
 
     const infraBuild = addTask({
       phase: "Preparation",
-      name: "Target infrastructure, operating system and database provisioning",
+      name: "Target infrastructure, OS and database provisioning",
       durationHours: 80,
       predecessors: [architecture],
       teams: "Infra, BASIS, DBA, Security",
-      details:
-        `Provision target environment. SAP application OS: ${getValue("targetApplicationOS")}. Database: ${getValue("targetDatabase")} on ${getValue("targetDatabaseOS")}. Validate storage, network, backup, monitoring, access and HA/DR.`
+      details: `Provision target environment. SAP Application OS: ${getValue("targetApplicationOS")}. Database: ${getValue("targetDatabase")} on ${getValue("targetDatabaseOS")}. Validate storage, network, backup, monitoring, access and HA/DR.`
     });
 
     const customCode = addTask({
       phase: "Preparation",
-      name: "Custom code remediation and ATC remediation",
+      name: "Custom code remediation and ATC findings resolution",
       durationHours: 120,
       predecessors: [readiness],
       teams: "ABAP, Functional, BASIS",
-      details:
-        "Remediate prioritized custom code findings. Address simplification impacts, HANA-related optimization where applicable, obsolete objects, interfaces and regression defects."
+      details: "Prioritize and remediate relevant custom code findings, obsolete objects, compatibility impacts, database-related changes, reports, forms, workflows and interfaces."
     });
 
-    const interfaceRemediation = addTask({
+    const integration = addTask({
       phase: "Preparation",
       name: "Interface and integration remediation",
       durationHours: 96,
       predecessors: [discovery],
       teams: "Integration, Functional, BASIS, Security",
-      details:
-        "Review and remediate APIs, RFCs, IDocs, middleware, certificates, endpoints, CPI/PI/PO integration, batch jobs and monitoring."
+      details: "Review and remediate APIs, RFCs, IDocs, middleware, certificates, endpoints, CPI/PI/PO integrations, background jobs and monitoring."
     });
 
-    let securityRemediation = null;
+    let securityTask = null;
 
     if (isChecked("includeSecurity")) {
-      securityRemediation = addTask({
+      securityTask = addTask({
         phase: "Preparation",
         name: "Security, roles, SoD and authorization remediation",
         durationHours: 80,
         predecessors: [readiness],
         teams: "Security, Functional, BASIS, QA",
-        details:
-          "Validate role redesign, Fiori roles where applicable, authorizations, SoD controls, emergency access, technical users and test user setup."
+        details: "Validate role changes, Fiori roles where applicable, authorizations, SoD controls, emergency access, technical users and test-user setup."
       });
     }
 
@@ -1140,32 +1017,29 @@ Include business-critical integrations, custom code remediation, security valida
       durationHours: 40,
       predecessors: [infraBuild],
       teams: "BASIS, DBA, Infra, Security",
-      details:
-        "Validate backup and restore, rollback feasibility, recovery procedures, RTO/RPO, database recovery, monitoring and operational runbook."
+      details: "Validate backup, restore, rollback feasibility, recovery procedures, RTO/RPO, monitoring and operational runbook."
     });
 
-    let sandboxValidation = discovery;
-    let qaValidation = discovery;
+    let sandboxPredecessor = discovery;
+    let qaPredecessor = discovery;
 
     if (isChecked("refreshSandbox")) {
       const sandboxRefresh = addTask({
         phase: "Non-Production",
         name: "Refresh Sandbox from Production",
-        durationHours: Number(getValue("sandboxRefreshDays")) * getShiftHours(),
+        durationHours: Number(getValue("sandboxRefreshDays")) * shiftHours,
         predecessors: [discovery],
         teams: "BASIS, DBA, Infra, Security",
-        details:
-          "Refresh Sandbox from Production. Apply approved data masking, validate connectivity, restore access, validate technical baseline and disable Production-specific jobs/interfaces."
+        details: "Refresh Sandbox from Production. Apply approved masking, disable production jobs and integrations, validate connectivity and restore authorized access."
       });
 
-      sandboxValidation = addTask({
+      sandboxPredecessor = addTask({
         phase: "Non-Production",
         name: "Sandbox post-refresh validation",
         durationHours: 24,
         predecessors: [sandboxRefresh],
         teams: "BASIS, Functional, Security, Integration",
-        details:
-          "Validate system access, interfaces, RFCs, jobs, printers, users, technical configuration and smoke-test transactions."
+        details: "Validate technical configuration, RFCs, interfaces, jobs, printers, users, connectivity and smoke-test transactions."
       });
     }
 
@@ -1173,61 +1047,55 @@ Include business-critical integrations, custom code remediation, security valida
       phase: "Non-Production",
       name: `Upgrade Sandbox system - ${transformationType}`,
       durationHours: 32,
-      predecessors: [sandboxValidation, infraBuild],
+      predecessors: [sandboxPredecessor, infraBuild],
       teams: "BASIS, DBA, Infra",
-      details:
-        "Perform the approved technical upgrade, migration, conversion or installation procedure in Sandbox during the normal single-shift working calendar."
+      details: "Perform approved technical procedure in Sandbox during normal weekday single-shift operations."
     });
 
-    const sandboxTest = addTask({
+    const sandboxValidation = addTask({
       phase: "Non-Production",
       name: "Sandbox technical and functional validation",
       durationHours: 24,
       predecessors: [sandboxUpgrade],
       teams: "BASIS, ABAP, Functional, Security, Integration",
-      details:
-        "Validate startup, logs, background jobs, interfaces, authorizations, custom code, critical transactions and technical monitoring."
+      details: "Validate startup, logs, jobs, interfaces, authorizations, custom code, technical monitoring and critical business transactions."
     });
 
     const devUpgrade = addTask({
       phase: "Non-Production",
       name: `Upgrade DEV system - ${transformationType}`,
       durationHours: 32,
-      predecessors: [sandboxTest, customCode],
+      predecessors: [sandboxValidation, customCode],
       teams: "BASIS, DBA, Infra, ABAP",
-      details:
-        "Upgrade DEV during normal weekday single-shift operations. Import approved technical transports and validate the development baseline."
+      details: "Upgrade DEV in weekday single-shift mode. Import approved transports and validate development baseline."
     });
 
     const unitTesting = addTask({
       phase: "Testing",
       name: "Unit Testing and defect remediation",
-      durationHours: unitHours,
+      durationHours: Number(getValue("unitTestingDays")) * shiftHours,
       predecessors: [devUpgrade, customCode],
       teams: "ABAP, Functional, QA, BASIS",
-      details:
-        "Execute Unit Testing for custom development, configuration, reports, forms, workflows, authorization changes and technical corrections."
+      details: "Execute unit tests for custom development, reports, forms, workflows, configuration, authorizations and technical corrections."
     });
 
     if (isChecked("refreshQA")) {
       const qaRefresh = addTask({
         phase: "Non-Production",
         name: "Refresh QA from Production",
-        durationHours: Number(getValue("qaRefreshDays")) * getShiftHours(),
+        durationHours: Number(getValue("qaRefreshDays")) * shiftHours,
         predecessors: [discovery],
         teams: "BASIS, DBA, Infra, Security",
-        details:
-          "Refresh QA from Production with approved masking, technical validation, interface control and test data readiness."
+        details: "Refresh QA from Production using approved masking, technical validation, interface controls and test-data readiness procedures."
       });
 
-      qaValidation = addTask({
+      qaPredecessor = addTask({
         phase: "Non-Production",
-        name: "QA post-refresh validation and test data setup",
+        name: "QA post-refresh validation and test-data setup",
         durationHours: 24,
         predecessors: [qaRefresh],
         teams: "BASIS, QA, Functional, Security, Integration",
-        details:
-          "Validate QA connectivity, restore approved integrations, configure test users, prepare test data and validate testing tools."
+        details: "Validate QA connectivity, test users, interfaces, approved jobs, test data and test management tools."
       });
     }
 
@@ -1235,121 +1103,106 @@ Include business-critical integrations, custom code remediation, security valida
       phase: "Non-Production",
       name: `Upgrade QA system - ${transformationType}`,
       durationHours: 32,
-      predecessors: [qaValidation, devUpgrade],
+      predecessors: [qaPredecessor, devUpgrade],
       teams: "BASIS, DBA, Infra",
-      details:
-        "Upgrade QA in normal weekday single-shift mode. Validate upgrade logs, technical checks, transport sequence and QA availability."
+      details: "Upgrade QA during normal weekday single-shift operations and prepare for SIT and UAT."
     });
 
-    const sitPredecessors = [qaUpgrade, unitTesting, interfaceRemediation];
-
-    if (securityRemediation) {
-      sitPredecessors.push(securityRemediation);
-    }
+    const sitPredecessors = [qaUpgrade, unitTesting, integration];
+    if (securityTask) sitPredecessors.push(securityTask);
 
     const sit = addTask({
       phase: "Testing",
       name: "System Integration Testing (SIT)",
-      durationHours: sitHours,
+      durationHours: Number(getValue("sitDays")) * shiftHours,
       predecessors: sitPredecessors,
       teams: "QA, Functional, Integration, ABAP, BASIS, Security",
-      details:
-        "Execute end-to-end integration testing, batch testing, interface testing, security testing, reconciliation testing, performance validation and defect closure."
+      details: "Execute end-to-end business process, integration, batch, security, reconciliation, regression and performance testing."
     });
 
     const uat = addTask({
       phase: "Testing",
       name: "User Acceptance Testing (UAT)",
-      durationHours: uatHours,
+      durationHours: Number(getValue("uatDays")) * shiftHours,
       predecessors: [sit],
       teams: "Business, Functional, QA, ABAP, BASIS",
-      details:
-        "Execute business acceptance testing. Obtain formal business sign-off, validate key reports, financial reconciliation, business process execution and operational readiness."
+      details: "Execute business acceptance testing, priority defect remediation, financial reconciliation, operational readiness and formal business sign-off."
     });
 
-    let lastMockReview = uat;
+    let lastMockActivity = uat;
 
-    for (let mockNumber = 1; mockNumber <= mockRuns; mockNumber++) {
+    for (let mock = 1; mock <= mockRuns; mock++) {
       const mockBuild = addTask({
         phase: "Mock Cutover",
-        name: `Mock ${mockNumber}: Build mock system from Production refresh`,
-        durationHours: Number(getValue("mockRefreshDays")) * getShiftHours(),
-        predecessors: [lastMockReview, backupReadiness],
+        name: `Mock ${mock}: Build mock system from Production refresh`,
+        durationHours: Number(getValue("mockRefreshDays")) * shiftHours,
+        predecessors: [lastMockActivity, backupReadiness],
         teams: "BASIS, DBA, Infra, Security",
-        details:
-          "Create Mock system from a Production refresh by default. Apply masking, restore approved technical settings, validate access, jobs, interfaces and monitoring."
+        details: "Create the Mock environment from a Production refresh by default. Apply masking, validate access, interfaces, jobs, monitoring and technical baseline."
       });
 
       const mockUptime = addTask({
         phase: "Mock Cutover",
-        name: `Mock ${mockNumber}: Uptime preparation activities`,
+        name: `Mock ${mock}: Uptime preparation activities`,
         durationHours: 24,
         predecessors: [mockBuild],
         teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security",
-        details:
-          "Prepare cutover bridge, validate backups, finalize transport list, confirm staffing, suspend planned jobs, prepare business communication and validate runbook."
+        details: "Complete weekday single-shift activities: backups, bridge preparation, transport list, resource confirmation, job suspension plan, communications and cutover checklist."
       });
 
-      const mockCutover = addTask({
+      const mockTechnicalCutover = addTask({
         phase: "Mock Cutover",
-        name: `Mock ${mockNumber}: Weekend 24x7 technical cutover rehearsal`,
+        name: `Mock ${mock}: Weekend 24x7 technical cutover rehearsal`,
         durationHours: 24,
         predecessors: [mockUptime],
         teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security, QA",
-        details:
-          `Execute ${transformationType} mock cutover during the weekend 24x7 calendar. Capture task-level timing, downtime, issues, decisions and fallback actions.`,
+        details: `Execute ${transformationType} rehearsal in Weekend 24×7 mode. Capture task-level duration, downtime, errors, fallback decisions and resource observations.`,
         calendar: CUTOVER_CALENDAR,
         executionMode: CUTOVER_MODE
       });
 
-      const mockValidation = addTask({
+      const mockSmoke = addTask({
         phase: "Mock Cutover",
-        name: `Mock ${mockNumber}: Weekend 24x7 smoke test and reconciliation`,
+        name: `Mock ${mock}: Weekend 24x7 smoke test and reconciliation`,
         durationHours: 12,
-        predecessors: [mockCutover],
-        teams: "Functional, Business, BASIS, ABAP, Integration, Security, QA",
-        details:
-          "Validate critical business processes, interfaces, authorizations, jobs, reports, financial reconciliation, data validation and technical monitoring.",
+        predecessors: [mockTechnicalCutover],
+        teams: "Business, Functional, QA, BASIS, ABAP, Integration, Security",
+        details: "Validate critical processes, integrations, jobs, authorizations, reports, technical monitoring, key balances and reconciliation.",
         calendar: CUTOVER_CALENDAR,
         executionMode: CUTOVER_MODE
       });
 
-      lastMockReview = addTask({
+      lastMockActivity = addTask({
         phase: "Mock Cutover",
-        name: `Mock ${mockNumber}: Retrospective and Production runbook optimization`,
+        name: `Mock ${mock}: Retrospective and Production runbook optimization`,
         durationHours: 16,
-        predecessors: [mockValidation],
+        predecessors: [mockSmoke],
         teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security, QA",
-        details:
-          "Compare planned and actual timings. Optimize dependencies, update task owners, improve fallback steps, refine downtime estimate and update Production cutover runbook."
+        details: "Compare planned vs actual timing, update dependencies, optimize downtime, resolve issues and improve the Production cutover runbook."
       });
     }
 
-    let productionReadinessPredecessor = lastMockReview;
+    let productionReadinessPredecessor = lastMockActivity;
 
     if (isChecked("transportFreezeEnabled")) {
-      const transportFreeze = addTask({
+      productionReadinessPredecessor = addTask({
         phase: "Production Readiness",
         name: "Start Production transport freeze period",
-        durationHours: Number(getValue("transportFreezeDays")) * getShiftHours(),
-        predecessors: [lastMockReview],
+        durationHours: Number(getValue("transportFreezeDays")) * shiftHours,
+        predecessors: [lastMockActivity],
         teams: "PMO, BASIS, ABAP, Functional, Security",
-        details:
-          "Freeze standard Production transports. Only approved emergency changes may be moved through the formal CAB and project approval process.",
+        details: "Freeze standard Production transports. Emergency transports require formal approval through PMO, CAB and designated project governance.",
         transportFreezeImpact: true
       });
-
-      productionReadinessPredecessor = transportFreeze;
     }
 
     const productionReadiness = addTask({
       phase: "Production Readiness",
-      name: "Production cutover readiness, transport queue and Go/No-Go review",
+      name: "Production cutover readiness, transport queue validation and Go/No-Go review",
       durationHours: 16,
       predecessors: [productionReadinessPredecessor],
       teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security, Business",
-      details:
-        "Validate Production transport queue, cutover checklist, backup readiness, rollback readiness, staffing, support bridge, business communication, downtime notice and Go/No-Go approvals.",
+      details: "Validate transport queue, cutover checklist, backups, rollback, staffing, support bridge, business communication, downtime notice and Go/No-Go approvals.",
       transportFreezeImpact: true
     });
 
@@ -1359,8 +1212,7 @@ Include business-critical integrations, custom code remediation, security valida
       durationHours: 24,
       predecessors: [productionReadiness],
       teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security",
-      details:
-        "Complete weekday single-shift Production readiness activities including final backup validation, job suspension planning, interface coordination, transport preparation and command center readiness.",
+      details: "Complete weekday single-shift readiness activities including backup validation, transport preparation, job planning, interface coordination and command-center preparation.",
       transportFreezeImpact: true
     });
 
@@ -1370,21 +1222,19 @@ Include business-critical integrations, custom code remediation, security valida
       durationHours: 24,
       predecessors: [productionUptime],
       teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security",
-      details:
-        "Execute Production cutover during the weekend 24x7 window. Include business downtime start, system shutdown, upgrade/conversion/migration activities, technical validation, restart and downtime-end confirmation.",
+      details: "Execute Production cutover in Weekend 24×7 mode. Include business downtime, shutdown, technical conversion/upgrade/migration, validation, restart and downtime-end confirmation.",
       calendar: CUTOVER_CALENDAR,
       executionMode: CUTOVER_MODE,
       transportFreezeImpact: true
     });
 
-    const productionSmokeTest = addTask({
+    const productionSmoke = addTask({
       phase: "Production Cutover",
-      name: "Production weekend 24x7 smoke testing and reconciliation",
+      name: "Production weekend 24x7 smoke test and reconciliation",
       durationHours: 12,
       predecessors: [productionCutover],
       teams: "Business, Functional, QA, BASIS, ABAP, Integration, Security",
-      details:
-        "Validate critical business transactions, interfaces, jobs, authorizations, printing, financial balances, reports, monitoring and key reconciliation controls.",
+      details: "Validate critical transactions, interfaces, jobs, authorizations, printing, reports, financial balances, key reconciliation and monitoring.",
       calendar: CUTOVER_CALENDAR,
       executionMode: CUTOVER_MODE,
       transportFreezeImpact: true
@@ -1394,10 +1244,9 @@ Include business-critical integrations, custom code remediation, security valida
       phase: "Production Cutover",
       name: "Production Go-Live approval and business release",
       durationHours: 4,
-      predecessors: [productionSmokeTest],
+      predecessors: [productionSmoke],
       teams: "PMO, Business, Functional, BASIS, Leadership / CAB",
-      details:
-        "Confirm Go-Live criteria, approve business release, communicate downtime end, activate support model and transition to hypercare.",
+      details: "Confirm Go-Live criteria, approve business release, announce downtime end, activate support model and hand over to Hypercare.",
       calendar: CUTOVER_CALENDAR,
       executionMode: CUTOVER_MODE,
       transportFreezeImpact: true
@@ -1406,11 +1255,10 @@ Include business-critical integrations, custom code remediation, security valida
     const hypercare = addTask({
       phase: "Hypercare",
       name: "Hypercare command center",
-      durationHours: hypercareHours,
+      durationHours: Number(getValue("hypercareDays")) * shiftHours,
       predecessors: [goLive],
       teams: "PMO, Service Desk, BASIS, Functional, ABAP, Integration, Security, Business",
-      details:
-        "Operate daily triage, incident management, monitoring, interface validation, reconciliation, performance review, user support, defect management and business communication."
+      details: "Operate daily triage, incident management, monitoring, interface validation, performance review, reconciliation, defect management and user support."
     });
 
     addTask({
@@ -1419,19 +1267,17 @@ Include business-critical integrations, custom code remediation, security valida
       durationHours: 24,
       predecessors: [hypercare],
       teams: "PMO, BASIS, Functional, ABAP, Security, Infra, Service Desk, Business",
-      details:
-        "Complete BAU handover, support documentation, operational acceptance, residual defect review, KPI review, lessons learned and project closure."
+      details: "Complete BAU handover, operational documentation, residual defect review, support acceptance, KPI review, lessons learned and project closure."
     });
 
     if (isChecked("includeDowntimeOptimization")) {
       addTask({
         phase: "Post Cutover",
-        name: "Downtime optimization assessment and actual-vs-mock review",
+        name: "Downtime optimization and actual-versus-mock review",
         durationHours: 16,
         predecessors: [goLive],
         teams: "PMO, BASIS, DBA, Infra, Functional",
-        details:
-          "Compare Production cutover duration with mock results. Document downtime optimization opportunities and lessons learned for future releases."
+        details: "Compare Production timing with mock results, identify improvements, document lessons learned and update future upgrade standards."
       });
     }
 
@@ -1439,19 +1285,28 @@ Include business-critical integrations, custom code remediation, security valida
     renderPlan();
   }
 
-  function renderPlan() {
-    const totalHours = plan.reduce(
-      (total, item) => total + Number(item.durationHours),
-      0
-    );
+  function formatDateTime(value) {
+    if (!value) return "-";
 
-    const mockTaskCount = plan.filter(
+    return new Date(value).toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    });
+  }
+
+  function renderPlan() {
+    const totalHours = plan.reduce((sum, item) => sum + item.durationHours, 0);
+
+    const mockActivities = plan.filter(
       item => item.phase === "Mock Cutover"
     ).length;
 
     const productionCutover = plan.find(
-      item => item.phase === "Production Cutover" &&
-        item.name.includes("technical cutover")
+      item => item.name.includes("Production weekend 24x7 technical cutover")
     );
 
     const latestFinish = plan.reduce((latest, item) => {
@@ -1462,16 +1317,15 @@ Include business-critical integrations, custom code remediation, security valida
     document.getElementById("summary").innerHTML = `
       <div class="metric"><b>${plan.length}</b>Tasks</div>
       <div class="metric"><b>${totalHours}</b>Planned Work Hours</div>
-      <div class="metric"><b>${mockTaskCount}</b>Mock Activities</div>
+      <div class="metric"><b>${mockActivities}</b>Mock Activities</div>
       <div class="metric"><b>${productionCutover ? formatDateTime(productionCutover.start) : "-"}</b>Production Cutover Start</div>
       <div class="metric"><b>${formatDateTime(latestFinish)}</b>Indicative Finish</div>
     `;
 
-    const rows = plan.map(item => {
-      const calendarClass =
-        item.calendar === CUTOVER_CALENDAR
-          ? "calendar-cutover"
-          : "calendar-normal";
+    document.getElementById("planRows").innerHTML = plan.map(item => {
+      const calendarClass = item.calendar === CUTOVER_CALENDAR
+        ? "cutover-calendar"
+        : "normal-calendar";
 
       return `
         <tr>
@@ -1490,8 +1344,185 @@ Include business-critical integrations, custom code remediation, security valida
         </tr>
       `;
     }).join("");
+  }
 
-    document.getElementById("planRows").innerHTML = rows;
+  function buildBrowserFallbackResearch(reason) {
+    const targetRelease = getValue("targetRelease");
+    const transformationType = getValue("transformationType");
+    const sourceDatabase = getValue("sourceDatabase");
+    const targetDatabase = getValue("targetDatabase");
+    const targetHosting = getValue("targetHosting");
+
+    const terms = [
+      `"${targetRelease}" installation guide`,
+      `"${targetRelease}" upgrade guide`,
+      `"${targetRelease}" system requirements`,
+      `"SAP Maintenance Planner" ${transformationType}`,
+      `"Software Update Manager" SAP guide`
+    ];
+
+    if (
+      sourceDatabase === "SAP HANA" ||
+      targetDatabase === "SAP HANA"
+    ) {
+      terms.push(
+        `"SAP HANA" Linux operating system requirements`,
+        `"SAP HANA" hardware and software requirements`
+      );
+    }
+
+    if (transformationType.includes("Conversion")) {
+      terms.push(
+        `"SAP S/4HANA conversion guide"`,
+        `"SAP S/4HANA" simplification item catalog`,
+        `"SAP Readiness Check" S/4HANA`
+      );
+    }
+
+    if (
+      transformationType.includes("Migration") ||
+      transformationType.includes("Lift & Shift")
+    ) {
+      terms.push(
+        `"SAP system copy guide"`,
+        `"SAP database migration option" DMO`
+      );
+    }
+
+    if (targetHosting.includes("RISE")) {
+      terms.push(
+        `"RISE with SAP" technical services guide`,
+        `"RISE with SAP" customer responsibilities`
+      );
+    }
+
+    const references = [...new Set(terms)].map(term => ({
+      title: `Search SAP Help Portal: ${term}`,
+      sapHelpUrl: `https://help.sap.com/docs/search?q=${encodeURIComponent(term)}`,
+      googleUrl: `https://www.google.com/search?q=${encodeURIComponent(`site:help.sap.com/docs ${term}`)}`
+    }));
+
+    return {
+      source: "Browser Fallback SAP Help Search",
+      fallback: true,
+      answer:
+        `Gemini guide research is unavailable or the backend could not be reached. ` +
+        `The application generated targeted SAP Help Portal and Google site-restricted search links instead of failing.`,
+      planningConsiderations: [
+        "Validate the SAP Product Availability Matrix for the selected SAP release, hosting, SAP application operating system and database operating system.",
+        "Validate upgrade, conversion, migration or installation steps through SAP Help Portal and SAP Support documentation.",
+        "Use SAP Maintenance Planner to validate compatible add-ons, stack XML, technical dependencies and maintenance requirements.",
+        "Use SAP Readiness Check where applicable for custom-code findings, simplification items, sizing, business impacts and integration risks.",
+        "SAP HANA database servers require Linux; validate SAP application OS support independently against the SAP Product Availability Matrix.",
+        "Use Production-derived refreshes for Sandbox, QA and Mock systems subject to approved security and data privacy processes.",
+        "Run non-production activities in the normal single-shift calendar and run Mock/Production cutover tasks during Weekend 24x7 execution windows.",
+        "Apply and govern a Production transport freeze before final Production cutover."
+      ],
+      references,
+      reason
+    };
+  }
+
+  function showResearchResults() {
+    const resultBox = document.getElementById("guideResults");
+    resultBox.style.display = "block";
+
+    const references = sapResearch.references.map(reference => {
+      if (reference.sapHelpUrl || reference.googleUrl) {
+        return `
+          <li>
+            <strong>${escapeHTML(reference.title)}</strong><br />
+            <a target="_blank" rel="noopener noreferrer" href="${escapeHTML(reference.sapHelpUrl)}">Search SAP Help Portal</a>
+            &nbsp;|&nbsp;
+            <a target="_blank" rel="noopener noreferrer" href="${escapeHTML(reference.googleUrl)}">Google Search restricted to help.sap.com/docs</a>
+          </li>
+        `;
+      }
+
+      return `
+        <li>
+          <a target="_blank" rel="noopener noreferrer" href="${escapeHTML(reference.url)}">
+            ${escapeHTML(reference.title)}
+          </a>
+        </li>
+      `;
+    }).join("");
+
+    resultBox.innerHTML = `
+      <strong>Research Source:</strong> ${escapeHTML(sapResearch.source)}
+      ${sapResearch.fallback
+        ? `<br /><strong>Fallback Mode:</strong> Research links and planning rules were generated without scraping Google or SAP Help content.`
+        : ""
+      }
+      <pre>${escapeHTML(sapResearch.answer)}</pre>
+      ${references ? `<strong>Documentation Searches / References</strong><ul>${references}</ul>` : ""}
+      <p class="note">
+        Select <strong>Generate MPP Plan</strong> again to include these research findings in the
+        SAP documentation validation task.
+      </p>
+    `;
+  }
+
+  async function researchSAPGuides() {
+    const resultBox = document.getElementById("guideResults");
+
+    resultBox.style.display = "block";
+    resultBox.textContent =
+      "Researching SAP documentation. A SAP Help Portal / Google site-restricted fallback will be used automatically if Gemini is quota-limited or unavailable...";
+
+    const payload = {
+      transformationType: getValue("transformationType"),
+      sourceHosting: getValue("sourceHosting"),
+      targetHosting: getValue("targetHosting"),
+      sourceApplicationOS: getValue("sourceApplicationOS"),
+      sourceDatabase: getValue("sourceDatabase"),
+      sourceDatabaseOS: getValue("sourceDatabaseOS"),
+      targetApplicationOS: getValue("targetApplicationOS"),
+      targetDatabase: getValue("targetDatabase"),
+      targetDatabaseOS: getValue("targetDatabaseOS"),
+      sourceRelease: getValue("sourceRelease"),
+      targetRelease: getValue("targetRelease"),
+      scope: getValue("scope")
+    };
+
+    try {
+      const response = await fetch("/api/research/sap-guides", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        sapResearch = buildBrowserFallbackResearch(
+          `Backend returned HTTP ${response.status}.`
+        );
+        showResearchResults();
+        return;
+      }
+
+      const data = await response.json();
+
+      sapResearch = {
+        source: data.source || "SAP Documentation Research",
+        fallback: Boolean(data.fallback),
+        answer: data.answer || "No research response was returned.",
+        planningConsiderations: data.planningConsiderations || [],
+        references: data.references || []
+      };
+
+      if (!sapResearch.answer.trim()) {
+        sapResearch = buildBrowserFallbackResearch(
+          "The research service returned no usable response."
+        );
+      }
+
+      showResearchResults();
+    } catch (error) {
+      sapResearch = buildBrowserFallbackResearch(
+        `Backend unavailable: ${error.message}`
+      );
+      showResearchResults();
+    }
   }
 
   function downloadFile(fileName, mimeType, content) {
@@ -1515,22 +1546,12 @@ Include business-critical integrations, custom code remediation, security valida
     }
 
     const headers = [
-      "ID",
-      "Phase",
-      "Task",
-      "Calendar",
-      "Execution Mode",
-      "Duration Hours",
-      "Start",
-      "Finish",
-      "Predecessors",
-      "Teams",
-      "Transport Freeze Impact",
-      "Details"
+      "ID", "Phase", "Task", "Calendar", "Execution Mode",
+      "Duration Hours", "Start", "Finish", "Predecessors",
+      "Teams", "Transport Freeze Impact", "Details"
     ];
 
-    const quote = value =>
-      `"${String(value ?? "").replaceAll('"', '""')}"`;
+    const quote = value => `"${String(value ?? "").replaceAll('"', '""')}"`;
 
     const rows = plan.map(item => [
       item.id,
@@ -1578,26 +1599,16 @@ Include business-critical integrations, custom code remediation, security valida
       </tr>
     `).join("");
 
-    const excel = `
+    const excelContent = `
       <html>
-        <head>
-          <meta charset="UTF-8" />
-        </head>
+        <head><meta charset="UTF-8" /></head>
         <body>
           <table border="1">
             <tr>
-              <th>ID</th>
-              <th>Phase</th>
-              <th>Task</th>
-              <th>Calendar</th>
-              <th>Execution Mode</th>
-              <th>Duration Hours</th>
-              <th>Start</th>
-              <th>Finish</th>
-              <th>Predecessors</th>
-              <th>Teams</th>
-              <th>Transport Freeze Impact</th>
-              <th>Details</th>
+              <th>ID</th><th>Phase</th><th>Task</th><th>Calendar</th>
+              <th>Execution Mode</th><th>Duration Hours</th><th>Start</th>
+              <th>Finish</th><th>Predecessors</th><th>Teams</th>
+              <th>Transport Freeze Impact</th><th>Details</th>
             </tr>
             ${rows}
           </table>
@@ -1608,32 +1619,21 @@ Include business-critical integrations, custom code remediation, security valida
     downloadFile(
       "sap-mpp-plan.xls",
       "application/vnd.ms-excel",
-      excel
+      excelContent
     );
   }
 
-  function xmlEscape(value) {
-    return String(value ?? "").replace(/[&<>"']/g, character => {
-      return {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;"
-      }[character];
-    });
-  }
-
-  function msProjectDate(dateValue) {
+  function projectDate(dateValue) {
     const date = new Date(dateValue);
 
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    const seconds = String(date.getSeconds()).padStart(2, "0");
+    const hour = String(date.getHours()).padStart(2, "0");
+    const minute = String(date.getMinutes()).padStart(2, "0");
+    const second = String(date.getSeconds()).padStart(2, "0");
 
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
   }
 
   function exportProjectXML() {
@@ -1643,15 +1643,14 @@ Include business-critical integrations, custom code remediation, security valida
     }
 
     const taskXml = plan.map(item => {
-      const predecessorXml = item.predecessors.map(predecessorId => `
+      const predecessors = item.predecessors.map(id => `
         <PredecessorLink>
-          <PredecessorUID>${predecessorId}</PredecessorUID>
+          <PredecessorUID>${id}</PredecessorUID>
           <Type>1</Type>
         </PredecessorLink>
       `).join("");
 
-      const calendarUid =
-        item.calendar === CUTOVER_CALENDAR ? 2 : 1;
+      const calendarUID = item.calendar === CUTOVER_CALENDAR ? 2 : 1;
 
       return `
         <Task>
@@ -1659,25 +1658,25 @@ Include business-critical integrations, custom code remediation, security valida
           <ID>${item.id}</ID>
           <Name>${xmlEscape(item.name)}</Name>
           <OutlineLevel>1</OutlineLevel>
-          <Start>${msProjectDate(item.start)}</Start>
-          <Finish>${msProjectDate(item.finish)}</Finish>
+          <Start>${projectDate(item.start)}</Start>
+          <Finish>${projectDate(item.finish)}</Finish>
           <Duration>PT${item.durationHours}H0M0S</Duration>
-          <CalendarUID>${calendarUid}</CalendarUID>
+          <CalendarUID>${calendarUID}</CalendarUID>
           <Notes>${xmlEscape(
             `Phase: ${item.phase}
-          Calendar: ${item.calendar}
-          Execution Mode: ${item.executionMode}
-          Teams: ${item.teams}
-          Transport Freeze Impact: ${item.transportFreezeImpact ? "Yes" : "No"}
-          SAP Research Source: ${sapResearch.source}
-          Details: ${item.details}`
+Calendar: ${item.calendar}
+Execution Mode: ${item.executionMode}
+Teams: ${item.teams}
+Transport Freeze Impact: ${item.transportFreezeImpact ? "Yes" : "No"}
+SAP Research Source: ${sapResearch.source}
+Details: ${item.details}`
           )}</Notes>
-          ${predecessorXml}
+          ${predecessors}
         </Task>
       `;
     }).join("");
 
-    const projectXml = `<?xml version="1.0" encoding="UTF-8"?>
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Project xmlns="http://schemas.microsoft.com/project">
   <Name>${xmlEscape(getValue("projectName"))}</Name>
   <Title>${xmlEscape(getValue("projectName"))}</Title>
@@ -1691,7 +1690,6 @@ Include business-critical integrations, custom code remediation, security valida
       <Name>Normal Working Calendar</Name>
       <IsBaseCalendar>1</IsBaseCalendar>
     </Calendar>
-
     <Calendar>
       <UID>2</UID>
       <Name>Weekend 24x7 Cutover Calendar</Name>
@@ -1706,7 +1704,6 @@ Include business-critical integrations, custom code remediation, security valida
       <Name>${xmlEscape(getValue("projectName"))}</Name>
       <Type>0</Type>
     </Task>
-
     ${taskXml}
   </Tasks>
 </Project>`;
@@ -1714,144 +1711,9 @@ Include business-critical integrations, custom code remediation, security valida
     downloadFile(
       "sap-mpp-plan.xml",
       "application/xml;charset=utf-8",
-      projectXml
+      xml
     );
   }
-
-async function researchSAPGuides() {
-  const resultBox = document.getElementById("guideResults");
-
-  resultBox.style.display = "block";
-  resultBox.textContent =
-    "Researching SAP documentation. If Gemini is unavailable or quota-limited, SAP Help Portal and Google site-restricted search links will be generated automatically...";
-
-  const payload = {
-    transformationType: getValue("transformationType"),
-    sourceHosting: getValue("sourceHosting"),
-    targetHosting: getValue("targetHosting"),
-    sourceApplicationOS: getValue("sourceApplicationOS"),
-    sourceDatabase: getValue("sourceDatabase"),
-    sourceDatabaseOS: getValue("sourceDatabaseOS"),
-    targetApplicationOS: getValue("targetApplicationOS"),
-    targetDatabase: getValue("targetDatabase"),
-    targetDatabaseOS: getValue("targetDatabaseOS"),
-    sourceRelease: getValue("sourceRelease"),
-    targetRelease: getValue("targetRelease"),
-    scope: getValue("scope")
-  };
-
-  try {
-    const response = await fetch("/api/research/sap-guides", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-
-    sapResearch = {
-      source: data.source || "SAP Documentation Research",
-      fallback: Boolean(data.fallback),
-      answer: data.answer || "",
-      planningConsiderations: data.planningConsiderations || [],
-      references: data.references || []
-    };
-
-    const referencesHtml = sapResearch.references
-      .map(reference => {
-        if (reference.sapHelpUrl || reference.googleUrl) {
-          return `
-            <li>
-              <strong>${escapeHTML(reference.title)}</strong><br />
-              <a href="${escapeHTML(reference.sapHelpUrl)}" target="_blank" rel="noopener noreferrer">
-                Search SAP Help Portal
-              </a>
-              &nbsp;|&nbsp;
-              <a href="${escapeHTML(reference.googleUrl)}" target="_blank" rel="noopener noreferrer">
-                Search Google: help.sap.com/docs
-              </a>
-            </li>
-          `;
-        }
-
-        return `
-          <li>
-            <a href="${escapeHTML(reference.url)}" target="_blank" rel="noopener noreferrer">
-              ${escapeHTML(reference.title)}
-            </a>
-          </li>
-        `;
-      })
-      .join("");
-
-    resultBox.innerHTML = `
-      <strong>Research Source:</strong> ${escapeHTML(sapResearch.source)}
-      ${sapResearch.fallback
-        ? `<br /><strong>Fallback Mode:</strong> Gemini was unavailable. Targeted SAP Help Portal and Google search links have been created.`
-        : ""
-      }
-      <pre style="white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;line-height:1.5;">${escapeHTML(sapResearch.answer)}</pre>
-      ${
-        referencesHtml
-          ? `<strong>Relevant Documentation Searches / References</strong><ul>${referencesHtml}</ul>`
-          : ""
-      }
-      <p class="note">
-        Generate the plan again after research. The plan will include a SAP documentation validation task
-        using the retrieved planning considerations or fallback recommendations.
-      </p>
-    `;
-  } catch (error) {
-    /*
-      This should only occur if the application server itself cannot be reached.
-      A local browser fallback is still produced instead of displaying an application failure.
-    */
-    const targetRelease = getValue("targetRelease");
-    const transformationType = getValue("transformationType");
-
-    const searchTerm =
-      `site:help.sap.com/docs "${targetRelease}" "${transformationType}"`;
-
-    sapResearch = {
-      source: "Browser Fallback SAP Help Search",
-      fallback: true,
-      answer:
-        "The application server could not be reached. Use the generated SAP Help Portal and Google site-restricted search links to validate applicable SAP documentation. The plan will include generic documentation validation activities.",
-      planningConsiderations: [
-        "Validate SAP Product Availability Matrix compatibility for target SAP release, application OS, database OS and hosting model.",
-        "Validate the upgrade, conversion, migration or installation procedure against official SAP Help documentation.",
-        "Validate SAP HANA Linux database operating system requirements where SAP HANA is in scope.",
-        "Validate all applicable SAP Notes and support documentation through SAP for Me or SAP Support Portal."
-      ],
-      references: [
-        {
-          title: `Search SAP Help Portal for ${targetRelease} / ${transformationType}`,
-          sapHelpUrl: `https://help.sap.com/docs/search?q=${encodeURIComponent(searchTerm)}`,
-          googleUrl: `https://www.google.com/search?q=${encodeURIComponent(searchTerm)}`
-        }
-      ]
-    };
-
-    resultBox.innerHTML = `
-      <strong>Research Source:</strong> Browser Fallback SAP Help Search<br />
-      <strong>Fallback Mode:</strong> The application server could not be reached. No application error was raised.
-      <pre style="white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;line-height:1.5;">${escapeHTML(sapResearch.answer)}</pre>
-      <ul>
-        <li>
-          <a href="${sapResearch.references[0].sapHelpUrl}" target="_blank" rel="noopener noreferrer">
-            Search SAP Help Portal
-          </a>
-          &nbsp;|&nbsp;
-          <a href="${sapResearch.references[0].googleUrl}" target="_blank" rel="noopener noreferrer">
-            Search Google restricted to help.sap.com/docs
-          </a>
-        </li>
-      </ul>
-    `;
-  }
-}
 
   applyHanaRules();
 </script>
