@@ -234,11 +234,12 @@
       overflow: auto;
       border: 1px solid var(--line);
       border-radius: 8px;
+      max-height: 600px;
     }
 
     table {
       width: 100%;
-      min-width: 1800px;
+      min-width: 2200px;
       border-collapse: collapse;
     }
 
@@ -247,14 +248,14 @@
       top: 0;
       padding: 10px;
       color: white;
-      font-size: 12px;
+      font-size: 11px;
       text-align: left;
       background: var(--navy);
     }
 
     td {
       padding: 9px;
-      font-size: 12px;
+      font-size: 11px;
       vertical-align: top;
       border-bottom: 1px solid var(--line);
     }
@@ -276,26 +277,98 @@
       font-weight: 700;
     }
 
+    .milestone-row {
+      background: #f0f3f8;
+      font-weight: 700;
+    }
+
     .small {
       color: var(--muted);
-      font-size: 11px;
+      font-size: 10px;
       line-height: 1.4;
     }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-content {
+      margin: auto;
+      background: white;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 1400px;
+      max-height: 90vh;
+      overflow: auto;
+      padding: 20px;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .modal-close:hover { color: var(--navy); }
+
+    .mpp-viewer {
+      width: 100%;
+    }
+
+    .mpp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .mpp-table th {
+      background: var(--navy);
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .mpp-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    .mpp-table tbody tr:nth-child(even) { background: #f9fafb; }
+    .mpp-table tbody tr:hover { background: #edf6ff; }
 
     @media (max-width: 980px) {
       .grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
       .span2, .span4 { grid-column: span 2; }
       .summary { grid-template-columns: repeat(2, 1fr); }
+      table { min-width: 100%; }
+      .modal-content { width: 95%; max-height: 95vh; }
     }
 
     @media print {
-      header, .input-section, .actions, #guideResults, .message {
+      header, .input-section, .actions, #guideResults, .message, .modal {
         display: none !important;
       }
 
       main { padding: 0; }
       .card { border: 0; box-shadow: none; }
-      .table-wrap { overflow: visible; }
+      .table-wrap { overflow: visible; max-height: none; }
     }
   </style>
 </head>
@@ -531,6 +604,66 @@
       <label><input id="includeDowntimeOptimization" checked type="checkbox" /> Include downtime optimization workstream</label>
     </div>
 
+    <h3>High Availability and Disaster Recovery Configuration</h3>
+
+    <div class="grid">
+      <div>
+        <label>Source HA Configuration</label>
+        <select id="sourceHA">
+          <option value="none">No HA</option>
+          <option value="cluster">Cluster / Pacemaker</option>
+          <option value="database-replication">Database Replication</option>
+          <option value="application-ha">Application Server HA</option>
+          <option value="other">Other HA Configuration</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Target HA Configuration</label>
+        <select id="targetHA">
+          <option value="none">No HA</option>
+          <option value="cluster">Cluster / Pacemaker</option>
+          <option value="database-replication">Database Replication</option>
+          <option value="application-ha">Application Server HA</option>
+          <option value="other">Other HA Configuration</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Source DR Configuration</label>
+        <select id="sourceDR">
+          <option value="none">No DR</option>
+          <option value="async-replication">Asynchronous Replication</option>
+          <option value="sync-replication">Synchronous Replication</option>
+          <option value="backup-restore">Backup / Restore DR</option>
+          <option value="other">Other DR Configuration</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Target DR Configuration</label>
+        <select id="targetDR">
+          <option value="none">No DR</option>
+          <option value="async-replication">Asynchronous Replication</option>
+          <option value="sync-replication">Synchronous Replication</option>
+          <option value="backup-restore">Backup / Restore DR</option>
+          <option value="other">Other DR Configuration</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="checks">
+      <label>
+        <input id="includeHAActivities" type="checkbox" checked />
+        Include HA / DR validation, freeze, failover and replication activities
+      </label>
+
+      <label>
+        <input id="includeRollbackActivities" type="checkbox" checked />
+        Include detailed rollback preparation and rollback decision checkpoints
+      </label>
+    </div>
+
     <p class="note">
       Mock systems are built from a Production refresh by default. Non-production upgrades, planning,
       testing and uptime preparation use the weekday single-shift calendar. Mock and Production
@@ -595,6 +728,7 @@
       <button class="secondary" onclick="exportCSV()">Export CSV</button>
       <button class="secondary" onclick="exportExcel()">Export Excel-Compatible XLS</button>
       <button class="secondary" onclick="exportProjectXML()">Export Microsoft Project XML</button>
+      <button class="secondary" onclick="openMPPViewer()">View Plan in Browser</button>
       <button class="secondary" onclick="window.print()">Print / Save as PDF</button>
     </div>
 
@@ -629,6 +763,7 @@
             <th>Calendar</th>
             <th>Execution Mode</th>
             <th>Duration</th>
+            <th>Milestone</th>
             <th>Start</th>
             <th>Finish</th>
             <th>Predecessor</th>
@@ -639,13 +774,20 @@
         </thead>
         <tbody id="planRows">
           <tr>
-            <td colspan="12" class="small">Enter project details and select Generate MPP Plan.</td>
+            <td colspan="13" class="small">Enter project details and select Generate MPP Plan.</td>
           </tr>
         </tbody>
       </table>
     </div>
   </section>
 </main>
+
+<div id="mppModal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeMPPViewer()">&times;</span>
+    <div id="mppViewerContent" class="mpp-viewer"></div>
+  </div>
+</div>
 
 <script>
   let plan = [];
@@ -825,7 +967,8 @@
     details,
     calendar = NORMAL_CALENDAR,
     executionMode = NORMAL_MODE,
-    transportFreezeImpact = false
+    transportFreezeImpact = false,
+    milestone = false
   }) {
     plan.push({
       id: plan.length + 1,
@@ -838,6 +981,7 @@
       calendar,
       executionMode,
       transportFreezeImpact,
+      milestone,
       start: null,
       finish: null
     });
@@ -882,6 +1026,702 @@
         task.finish = addNormalWorkingHours(task.start, task.durationHours);
       }
     }
+  }
+
+  function isSUMApplicable(transformationType) {
+    const text = String(transformationType || "").toLowerCase();
+    return (
+      text.includes("upgrade") ||
+      text.includes("conversion") ||
+      text.includes("s/4hana") ||
+      text.includes("migration")
+    );
+  }
+
+  function hasHAorDR() {
+    return (
+      getValue("sourceHA") !== "none" ||
+      getValue("targetHA") !== "none" ||
+      getValue("sourceDR") !== "none" ||
+      getValue("targetDR") !== "none"
+    );
+  }
+
+  function addMilestone({
+    phase,
+    name,
+    predecessors = [],
+    teams,
+    details,
+    calendar = NORMAL_CALENDAR,
+    executionMode = NORMAL_MODE,
+    transportFreezeImpact = false
+  }) {
+    return addTask({
+      phase,
+      name,
+      durationHours: 0,
+      predecessors,
+      teams,
+      details,
+      calendar,
+      executionMode,
+      transportFreezeImpact,
+      milestone: true
+    });
+  }
+
+  function addNonProdUpgrade({
+    systemName,
+    systemSID,
+    predecessorId,
+    transformationType,
+    isFirstNonProd = false
+  }) {
+    const sumApplicable = isSUMApplicable(transformationType);
+    let currentPredecessor = predecessorId;
+
+    // SUM Extraction Phase
+    if (sumApplicable) {
+      currentPredecessor = addTask({
+        phase: "Non-Production Upgrade",
+        name: `${systemName} (${systemSID}): SUM Phase - Extraction`,
+        durationHours: 6,
+        predecessors: [currentPredecessor],
+        teams: "BASIS, DBA, Infra",
+        details:
+          `Prepare and extract upgrade media, kernel, support packages, stack XML and software components for ${systemName}. Validate media integrity and filesystem capacity.`
+      });
+
+      currentPredecessor = addTask({
+        phase: "Non-Production Upgrade",
+        name: `${systemName} (${systemSID}): SUM Phase - Configuration`,
+        durationHours: 6,
+        predecessors: [currentPredecessor],
+        teams: "BASIS, DBA, Infra",
+        details:
+          `Configure SUM parameters, stack XML, maintenance procedure, database connection and upgrade paths for ${systemName}.`
+      });
+
+      currentPredecessor = addTask({
+        phase: "Non-Production Upgrade",
+        name: `${systemName} (${systemSID}): SUM Phase - Checks`,
+        durationHours: 8,
+        predecessors: [currentPredecessor],
+        teams: "BASIS, DBA, Infra, ABAP",
+        details:
+          `Resolve SUM checks, disk-space, add-on compatibility, SPDD preparation, transport conflicts and required manual actions for ${systemName}.`
+      });
+
+      currentPredecessor = addTask({
+        phase: "Non-Production Upgrade",
+        name: `${systemName} (${systemSID}): SUM Phase - Pre-processing`,
+        durationHours: 12,
+        predecessors: [currentPredecessor],
+        teams: "BASIS, DBA, Infra, ABAP",
+        details:
+          `Execute SUM uptime pre-processing, shadow instance processing and import preparation for ${systemName}.`
+      });
+
+      if (isFirstNonProd) {
+        currentPredecessor = addTask({
+          phase: "Non-Production Upgrade",
+          name: `${systemName} (${systemSID}): SUM SPADD & ACT_UPG on shadow system`,
+          durationHours: 16,
+          predecessors: [currentPredecessor],
+          teams: "BASIS, DBA, ABAP",
+          details:
+            `Execute SPADD (dictionary pre-update) and ACT_UPG on shadow system. Activate dictionary changes, resolve conflicts and prepare for production SPDD/SPAU transport sequence.`
+        });
+
+        currentPredecessor = addTask({
+          phase: "Non-Production Upgrade",
+          name: `${systemName} (${systemSID}): SUM Phase - Execution (Downtime)`,
+          durationHours: 20,
+          predecessors: [currentPredecessor],
+          teams: "BASIS, DBA, Infra",
+          details:
+            `Execute SUM downtime activities in ${systemName}. Monitor logs, database activities, imports, dictionary activation and system restart.`
+        });
+
+        currentPredecessor = addTask({
+          phase: "Non-Production Upgrade",
+          name: `${systemName} (${systemSID}): SUM Phase - Post-processing & SPAU imports`,
+          durationHours: 12,
+          predecessors: [currentPredecessor],
+          teams: "BASIS, DBA, Infra, ABAP",
+          details:
+            `Complete SUM post-processing, import SPAU transports, execute SPAU transport in ${systemName}. Validate system startup, SPAU completion and technical health.`
+        });
+      } else {
+        currentPredecessor = addTask({
+          phase: "Non-Production Upgrade",
+          name: `${systemName} (${systemSID}): Fix delta SPDD if needed & SUM Phase - Execution`,
+          durationHours: 20,
+          predecessors: [currentPredecessor],
+          teams: "BASIS, DBA, Infra, ABAP",
+          details:
+            `Apply delta SPDD corrections from first non-prod system if required. Execute SUM downtime for ${systemName}, monitor logs, validate database and system restart.`
+        });
+
+        currentPredecessor = addTask({
+          phase: "Non-Production Upgrade",
+          name: `${systemName} (${systemSID}): SUM Phase - Post-processing & SPAU imports`,
+          durationHours: 12,
+          predecessors: [currentPredecessor],
+          teams: "BASIS, DBA, Infra, ABAP",
+          details:
+            `Complete SUM post-processing and import SPAU transports. Validate ${systemName} technical health, SPAU completion and system readiness.`
+        });
+      }
+    } else {
+      currentPredecessor = addTask({
+        phase: "Non-Production Upgrade",
+        name: `${systemName} (${systemSID}): Technical upgrade and system copy preparation`,
+        durationHours: 24,
+        predecessors: [currentPredecessor],
+        teams: "BASIS, DBA, Infra",
+        details:
+          `Execute technical upgrade, migration or system copy procedure for ${systemName} during normal working hours.`
+      });
+    }
+
+    currentPredecessor = addTask({
+      phase: "Non-Production Upgrade",
+      name: `${systemName} (${systemSID}): Technical validation and smoke testing`,
+      durationHours: 8,
+      predecessors: [currentPredecessor],
+      teams: "BASIS, ABAP, Functional, Security",
+      details:
+        `Validate ${systemName} startup, logs, background jobs, interfaces, security, technical monitoring and critical transactions.`
+    });
+
+    currentPredecessor = addTask({
+      phase: "Non-Production Upgrade",
+      name: `${systemName} (${systemSID}): Apply Defect Fix & Security transports`,
+      durationHours: 6,
+      predecessors: [currentPredecessor],
+      teams: "BASIS, ABAP, Security",
+      details:
+        `Import and apply approved Defect Fix transports and Security transports to ${systemName}.`
+    });
+
+    currentPredecessor = addTask({
+      phase: "Non-Production Upgrade",
+      name: `${systemName} (${systemSID}): Customer buffer transport application`,
+      durationHours: 4,
+      predecessors: [currentPredecessor],
+      teams: "BASIS, ABAP",
+      details:
+        `Apply customer buffer / custom transport to maintain approved customer-specific objects and settings in ${systemName}.`
+    });
+
+    return currentPredecessor;
+  }
+
+  function addDetailedTechnicalCutover({
+    phase,
+    label,
+    transformationType,
+    predecessorId,
+    isProduction = false
+  }) {
+    const sumApplicable = isSUMApplicable(transformationType);
+    const includeHA = isChecked("includeHAActivities") && hasHAorDR();
+    const includeRollback = isChecked("includeRollbackActivities");
+
+    const transportFreezeImpact = isProduction;
+
+    let currentPredecessor = predecessorId;
+
+    // PRE-CUTOVER / UPTIME ACTIVITIES
+
+    const technicalReadiness = addTask({
+      phase,
+      name: `${label}: Final technical readiness review`,
+      durationHours: 8,
+      predecessors: [currentPredecessor],
+      teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security",
+      details:
+        "Review approved cutover runbook, task owners, contact list, bridge details, timing targets, issue escalation model, required access, monitoring, support coverage and Go/No-Go criteria.",
+      transportFreezeImpact
+    });
+
+    currentPredecessor = technicalReadiness;
+
+    const backupBeforeCutover = addTask({
+      phase,
+      name: `${label}: Pre-cutover full backup and restore-point validation`,
+      durationHours: 8,
+      predecessors: [currentPredecessor],
+      teams: "BASIS, DBA, Infra, Security",
+      details:
+        "Perform and validate the approved pre-cutover backup strategy. Confirm database backup, file-system backup, SAP profile backup, interface configuration backup, transport export, recovery validation and restore-point availability.",
+      transportFreezeImpact
+    });
+
+    currentPredecessor = backupBeforeCutover;
+
+    if (includeRollback) {
+      const rollbackPlan = addTask({
+        phase,
+        name: `${label}: Rollback plan and fallback procedure validation`,
+        durationHours: 8,
+        predecessors: [currentPredecessor],
+        teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Security",
+        details:
+          "Validate rollback decision point, rollback technical procedure, backup restoration procedure, fallback transport strategy, source-system reactivation plan, business communication and authority required to trigger rollback.",
+        transportFreezeImpact
+      });
+
+      currentPredecessor = rollbackPlan;
+    }
+
+    if (includeHA) {
+      const sourceHAValidation = addTask({
+        phase,
+        name: `${label}: Source HA / DR health validation`,
+        durationHours: 8,
+        predecessors: [currentPredecessor],
+        teams: "BASIS, DBA, Infra, Security",
+        details:
+          `Validate Source HA=${getValue("sourceHA")}, Source DR=${getValue("sourceDR")}. Confirm cluster health, replication status, backup status, takeover/failover status, fencing configuration, monitoring and DR recovery readiness.`,
+        transportFreezeImpact
+      });
+
+      currentPredecessor = sourceHAValidation;
+
+      const targetHAValidation = addTask({
+        phase,
+        name: `${label}: Target HA / DR readiness validation`,
+        durationHours: 8,
+        predecessors: [currentPredecessor],
+        teams: "BASIS, DBA, Infra, Security",
+        details:
+          `Validate Target HA=${getValue("targetHA")}, Target DR=${getValue("targetDR")}. Confirm cluster configuration, standby nodes, replication design, monitoring, backup, recovery procedure, DNS and connectivity readiness.`,
+        transportFreezeImpact
+      });
+
+      currentPredecessor = targetHAValidation;
+    }
+
+    // SUM UPTIME PHASES
+
+    if (sumApplicable) {
+      const sumExtraction = addTask({
+        phase,
+        name: `${label}: SUM Phase - Extraction`,
+        durationHours: 8,
+        predecessors: [currentPredecessor],
+        teams: "BASIS, DBA, Infra",
+        details:
+          "Prepare and extract required upgrade media, SAP kernel files, support packages, stack XML, maintenance planner output and relevant software components. Validate media integrity and filesystem capacity.",
+        transportFreezeImpact
+      });
+
+      const sumConfiguration = addTask({
+        phase,
+        name: `${label}: SUM Phase - Configuration`,
+        durationHours: 8,
+        predecessors: [sumExtraction],
+        teams: "BASIS, DBA, Infra",
+        details:
+          "Configure SUM parameters, stack XML, maintenance procedure, database connection, download directory, archive directory, shadow instance settings, transport strategy and upgrade paths.",
+        transportFreezeImpact
+      });
+
+      const sumChecks = addTask({
+        phase,
+        name: `${label}: SUM Phase - Checks`,
+        durationHours: 8,
+        predecessors: [sumConfiguration],
+        teams: "BASIS, DBA, Infra, ABAP, Functional",
+        details:
+          "Resolve SUM checks, disk-space checks, add-on checks, SPDD/SPAU preparation, transport conflicts, database checks, kernel checks, client requirements and required manual actions.",
+        transportFreezeImpact
+      });
+
+      const lockNowMilestone = addMilestone({
+        phase,
+        name: `${label}: SUM Lock Now milestone`,
+        predecessors: [sumChecks],
+        teams: "PMO, BASIS, ABAP, Functional, Security",
+        details:
+          "Enter the SUM Lock Now phase. Confirm controlled change freeze, restrict non-approved technical changes, validate transport queue and communicate the final change-control process.",
+        transportFreezeImpact
+      });
+
+      const lockNowActivities = addTask({
+        phase,
+        name: `${label}: Lock Now activities and transport control`,
+        durationHours: 8,
+        predecessors: [lockNowMilestone],
+        teams: "PMO, BASIS, ABAP, Functional, Security",
+        details:
+          "Lock or control relevant change activities. Validate production transport queue, release only approved cutover transports, confirm emergency change approval route and reconcile all pending changes.",
+        transportFreezeImpact
+      });
+
+      const sumPreprocessing = addTask({
+        phase,
+        name: `${label}: SUM Phase - Pre-processing`,
+        durationHours: 16,
+        predecessors: [lockNowActivities],
+        teams: "BASIS, DBA, Infra, ABAP",
+        details:
+          "Execute SUM uptime pre-processing activities, shadow instance processing, import preparation, upgrade preparation, data dictionary preparation and required technical checks.",
+        transportFreezeImpact
+      });
+
+      currentPredecessor = sumPreprocessing;
+    } else {
+      const technicalPreparation = addTask({
+        phase,
+        name: `${label}: Technical pre-processing and migration preparation`,
+        durationHours: 16,
+        predecessors: [currentPredecessor],
+        teams: "BASIS, DBA, Infra, ABAP",
+        details:
+          "Perform applicable technical pre-processing for installation, system copy, migration, lift-and-shift or hosting transition. Validate configuration, media, migration tools, connectivity and technical prerequisites.",
+        transportFreezeImpact
+      });
+
+      currentPredecessor = technicalPreparation;
+    }
+
+    // CUTOVER WINDOW ACTIVITIES
+
+    const cutoverStart = addMilestone({
+      phase,
+      name: `${label}: Cutover bridge opened`,
+      predecessors: [currentPredecessor],
+      teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security, Business",
+      details:
+        "Open the cutover bridge. Confirm attendance, bridge communication protocol, task sequence, escalation process, decision makers, planned downtime start and business communication readiness.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    let cutoverPredecessor = cutoverStart;
+
+    const finalBackup = addTask({
+      phase,
+      name: `${label}: Final backup before downtime`,
+      durationHours: 4,
+      predecessors: [cutoverPredecessor],
+      teams: "BASIS, DBA, Infra",
+      details:
+        "Perform final approved backup before downtime. Confirm database consistency, backup completion, restore-point status, backup catalog availability and rollback recovery readiness.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    cutoverPredecessor = finalBackup;
+
+    if (includeHA) {
+      const haFreeze = addTask({
+        phase,
+        name: `${label}: Freeze HA / DR automation and replication controls`,
+        durationHours: 2,
+        predecessors: [cutoverPredecessor],
+        teams: "BASIS, DBA, Infra, Security",
+        details:
+          "Place HA/DR automation into approved maintenance mode. Validate cluster behavior, suspend non-required automated failover actions, document replication state and prevent unintended failover or split-brain conditions.",
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+
+      cutoverPredecessor = haFreeze;
+    }
+
+    const dtv = addTask({
+      phase,
+      name: `${label}: DTV and final uptime validation before downtime`,
+      durationHours: 4,
+      predecessors: [cutoverPredecessor],
+      teams: "BASIS, DBA, ABAP, Functional, Integration",
+      details:
+        "Perform applicable DTV, downtime optimization validation, final data transfer checks, transport validation, technical prerequisites, interface readiness checks and final open-item review before entering downtime. Validate exact procedure against the applicable SAP guide.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    cutoverPredecessor = dtv;
+
+    const rampDown = addTask({
+      phase,
+      name: `${label}: Ramp-down activities`,
+      durationHours: 4,
+      predecessors: [cutoverPredecessor],
+      teams: "PMO, BASIS, DBA, Functional, Integration, Security",
+      details:
+        "Execute ramp-down activities: stop business processing, stop or hold interfaces, suspend background jobs, stop batch schedules, stop print processing where required, complete final reconciliation and communicate impending downtime.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    cutoverPredecessor = rampDown;
+
+    const userLocking = addTask({
+      phase,
+      name: `${label}: User locking and business downtime start`,
+      durationHours: 2,
+      predecessors: [cutoverPredecessor],
+      teams: "BASIS, Security, Functional, PMO",
+      details:
+        "Lock business users according to the approved cutover strategy, retain designated emergency and technical users, display downtime notification where applicable, confirm business transaction stop and formally announce downtime start.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    cutoverPredecessor = userLocking;
+
+    const downtimeStart = addMilestone({
+      phase,
+      name: `${label}: Business downtime start milestone`,
+      predecessors: [cutoverPredecessor],
+      teams: "PMO, Business, BASIS, Functional",
+      details:
+        "Formal business downtime start. No further normal business processing is permitted except approved emergency and cutover activities.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    cutoverPredecessor = downtimeStart;
+
+    if (includeRollback) {
+      const rollbackCheckpoint = addMilestone({
+        phase,
+        name: `${label}: Rollback decision checkpoint before technical execution`,
+        predecessors: [cutoverPredecessor],
+        teams: "PMO, BASIS, DBA, Infra, Functional, Business, Leadership / CAB",
+        details:
+          "Confirm all entry criteria before irreversible technical execution. Review backup success, HA/DR state, resource readiness, downtime status, technical checks and business approval. Trigger rollback if entry criteria are not met.",
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+
+      cutoverPredecessor = rollbackCheckpoint;
+    }
+
+    if (includeHA) {
+      const sourceFence = addTask({
+        phase,
+        name: `${label}: Source HA / DR source-system fencing and protection`,
+        durationHours: 2,
+        predecessors: [cutoverPredecessor],
+        teams: "BASIS, DBA, Infra",
+        details:
+          "Protect source environment during downtime. Apply approved fencing or maintenance procedures, prevent unintended startup, prevent split brain, confirm source replication and failover status, and retain source rollback capability.",
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+
+      cutoverPredecessor = sourceFence;
+    }
+
+    let technicalExecution;
+
+    if (sumApplicable) {
+      technicalExecution = addTask({
+        phase,
+        name: `${label}: SUM Phase - Execution (Downtime)`,
+        durationHours: 16,
+        predecessors: [cutoverPredecessor],
+        teams: "BASIS, DBA, Infra, ABAP",
+        details:
+          "Execute SUM downtime activities. Monitor upgrade logs, database activities, imports, dictionary activation, downtime tasks, error handling, restart procedures and escalation to SAP/Vendor if required.",
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+    } else {
+      technicalExecution = addTask({
+        phase,
+        name: `${label}: Technical execution during downtime`,
+        durationHours: 16,
+        predecessors: [cutoverPredecessor],
+        teams: "BASIS, DBA, Infra, ABAP",
+        details:
+          "Execute approved technical migration, installation, system copy, lift-and-shift or hosting transition procedure. Monitor logs, data transfer, database migration, system startup and technical validation.",
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+    }
+
+    let postProcessing;
+
+    if (sumApplicable) {
+      postProcessing = addTask({
+        phase,
+        name: `${label}: SUM Phase - Post-processing`,
+        durationHours: 12,
+        predecessors: [technicalExecution],
+        teams: "BASIS, DBA, Infra, ABAP, Functional",
+        details:
+          "Complete SUM post-processing, technical cleanup, system startup, import validation, prepare for SPAU execution, job activation preparation, interface restoration preparation and technical health checks.",
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+    } else {
+      postProcessing = addTask({
+        phase,
+        name: `${label}: Technical post-processing and system startup`,
+        durationHours: 12,
+        predecessors: [technicalExecution],
+        teams: "BASIS, DBA, Infra, ABAP, Functional",
+        details:
+          "Complete post-processing, technical cleanup, target-system startup, connectivity validation, monitoring activation, profile validation and technical health checks.",
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+    }
+
+    let postProcessingPredecessor = postProcessing;
+
+    const technicalBackup = addTask({
+      phase,
+      name: `${label}: Post-technical-execution backup`,
+      durationHours: 4,
+      predecessors: [postProcessingPredecessor],
+      teams: "BASIS, DBA, Infra",
+      details:
+        "Perform and validate a post-execution backup after the new technical baseline is stable. Retain backup evidence and confirm recovery catalog availability.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    postProcessingPredecessor = technicalBackup;
+
+    if (sumApplicable) {
+      const spauExecution = addTask({
+        phase,
+        name: `${label}: SUM Phase - Execute SPAU transports`,
+        durationHours: 8,
+        predecessors: [postProcessingPredecessor],
+        teams: "BASIS, ABAP, DBA",
+        details:
+          "Import and execute approved SPAU (SAP Post-Upgrade) transports. Validate transport completion, dictionary changes, report compilations and technical validation.",
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+
+      postProcessingPredecessor = spauExecution;
+    }
+
+    if (includeHA) {
+      const targetHAEnablement = addTask({
+        phase,
+        name: `${label}: Target HA / DR enablement and replication validation`,
+        durationHours: 6,
+        predecessors: [postProcessingPredecessor],
+        teams: "BASIS, DBA, Infra, Security",
+        details:
+          "Enable or validate target HA/DR processes. Validate cluster nodes, replication, standby status, failover readiness, monitoring, backup integration, DNS/load balancer behavior and operational ownership.",
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+
+      postProcessingPredecessor = targetHAEnablement;
+    }
+
+    const defectFixTransports = addTask({
+      phase,
+      name: `${label}: Apply Defect Fix transports`,
+      durationHours: 4,
+      predecessors: [postProcessingPredecessor],
+      teams: "BASIS, ABAP",
+      details:
+        "Import and apply approved Defect Fix transports to address any known defects or compatibility issues identified during testing.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    const securityTransports = addTask({
+      phase,
+      name: `${label}: Apply Security transports`,
+      durationHours: 4,
+      predecessors: [defectFixTransports],
+      teams: "BASIS, Security",
+      details:
+        "Import and apply approved Security transports for security patches, role updates, SoD controls and emergency access configurations.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    const customerBufferTransport = addTask({
+      phase,
+      name: `${label}: Apply customer buffer / custom transports`,
+      durationHours: 4,
+      predecessors: [securityTransports],
+      teams: "BASIS, ABAP",
+      details:
+        "Import and apply approved customer buffer or customer-specific transports to maintain approved customizations and settings.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    const rampUp = addTask({
+      phase,
+      name: `${label}: Ramp-up activities`,
+      durationHours: 6,
+      predecessors: [customerBufferTransport],
+      teams: "BASIS, Functional, ABAP, Integration, Security, Business",
+      details:
+        "Perform ramp-up activities: start interfaces in controlled sequence, release approved batch jobs, restore print processing, enable monitoring, validate technical users, unlock pilot users and execute prioritized business transaction checks.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    const smokeTest = addTask({
+      phase,
+      name: `${label}: Critical smoke testing and business reconciliation`,
+      durationHours: 8,
+      predecessors: [rampUp],
+      teams: "Business, Functional, QA, BASIS, ABAP, Integration, Security",
+      details:
+        "Validate critical transactions, interfaces, background jobs, security, printing, reports, master data, financial balances, reconciliation controls, performance and operational monitoring.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    const downtimeEnd = addMilestone({
+      phase,
+      name: `${label}: Business downtime end milestone`,
+      predecessors: [smokeTest],
+      teams: "PMO, Business, Functional, BASIS, Leadership / CAB",
+      details:
+        "Confirm completion of critical validation, approve business release, announce downtime end and transition to controlled hypercare support.",
+      calendar: CUTOVER_CALENDAR,
+      executionMode: CUTOVER_MODE,
+      transportFreezeImpact
+    });
+
+    return {
+      finalTaskId: downtimeEnd,
+      technicalExecutionId: technicalExecution,
+      smokeTestId: smokeTest
+    };
   }
 
   function generatePlan() {
@@ -1020,13 +1860,14 @@
       details: "Validate backup, restore, rollback feasibility, recovery procedures, RTO/RPO, monitoring and operational runbook."
     });
 
+    // Non-Production Sandbox Upgrade
+
     let sandboxPredecessor = discovery;
-    let qaPredecessor = discovery;
 
     if (isChecked("refreshSandbox")) {
       const sandboxRefresh = addTask({
         phase: "Non-Production",
-        name: "Refresh Sandbox from Production",
+        name: "Sandbox (SBX): Refresh from Production",
         durationHours: Number(getValue("sandboxRefreshDays")) * shiftHours,
         predecessors: [discovery],
         teams: "BASIS, DBA, Infra, Security",
@@ -1035,7 +1876,7 @@
 
       sandboxPredecessor = addTask({
         phase: "Non-Production",
-        name: "Sandbox post-refresh validation",
+        name: "Sandbox (SBX): Post-refresh validation",
         durationHours: 24,
         predecessors: [sandboxRefresh],
         teams: "BASIS, Functional, Security, Integration",
@@ -1043,46 +1884,41 @@
       });
     }
 
-    const sandboxUpgrade = addTask({
-      phase: "Non-Production",
-      name: `Upgrade Sandbox system - ${transformationType}`,
-      durationHours: 32,
-      predecessors: [sandboxPredecessor, infraBuild],
-      teams: "BASIS, DBA, Infra",
-      details: "Perform approved technical procedure in Sandbox during normal weekday single-shift operations."
+    const sandboxUpgradePred = addNonProdUpgrade({
+      systemName: "Sandbox",
+      systemSID: "SBX",
+      predecessorId: sandboxPredecessor,
+      transformationType,
+      isFirstNonProd: true
     });
 
-    const sandboxValidation = addTask({
-      phase: "Non-Production",
-      name: "Sandbox technical and functional validation",
-      durationHours: 24,
-      predecessors: [sandboxUpgrade],
-      teams: "BASIS, ABAP, Functional, Security, Integration",
-      details: "Validate startup, logs, jobs, interfaces, authorizations, custom code, technical monitoring and critical business transactions."
-    });
+    // Non-Production DEV Upgrade
 
-    const devUpgrade = addTask({
-      phase: "Non-Production",
-      name: `Upgrade DEV system - ${transformationType}`,
-      durationHours: 32,
-      predecessors: [sandboxValidation, customCode],
-      teams: "BASIS, DBA, Infra, ABAP",
-      details: "Upgrade DEV in weekday single-shift mode. Import approved transports and validate development baseline."
+    const devUpgradePred = addNonProdUpgrade({
+      systemName: "Development",
+      systemSID: "DEV",
+      predecessorId: sandboxUpgradePred,
+      transformationType,
+      isFirstNonProd: false
     });
 
     const unitTesting = addTask({
       phase: "Testing",
       name: "Unit Testing and defect remediation",
       durationHours: Number(getValue("unitTestingDays")) * shiftHours,
-      predecessors: [devUpgrade, customCode],
+      predecessors: [devUpgradePred, customCode],
       teams: "ABAP, Functional, QA, BASIS",
       details: "Execute unit tests for custom development, reports, forms, workflows, configuration, authorizations and technical corrections."
     });
 
+    // Non-Production QA Upgrade
+
+    let qaPredecessor = discovery;
+
     if (isChecked("refreshQA")) {
       const qaRefresh = addTask({
         phase: "Non-Production",
-        name: "Refresh QA from Production",
+        name: "QA (QAS): Refresh from Production",
         durationHours: Number(getValue("qaRefreshDays")) * shiftHours,
         predecessors: [discovery],
         teams: "BASIS, DBA, Infra, Security",
@@ -1091,7 +1927,7 @@
 
       qaPredecessor = addTask({
         phase: "Non-Production",
-        name: "QA post-refresh validation and test-data setup",
+        name: "QA (QAS): Post-refresh validation and test-data setup",
         durationHours: 24,
         predecessors: [qaRefresh],
         teams: "BASIS, QA, Functional, Security, Integration",
@@ -1099,16 +1935,15 @@
       });
     }
 
-    const qaUpgrade = addTask({
-      phase: "Non-Production",
-      name: `Upgrade QA system - ${transformationType}`,
-      durationHours: 32,
-      predecessors: [qaPredecessor, devUpgrade],
-      teams: "BASIS, DBA, Infra",
-      details: "Upgrade QA during normal weekday single-shift operations and prepare for SIT and UAT."
+    const qaUpgradePred = addNonProdUpgrade({
+      systemName: "Quality Assurance",
+      systemSID: "QAS",
+      predecessorId: qaPredecessor,
+      transformationType,
+      isFirstNonProd: false
     });
 
-    const sitPredecessors = [qaUpgrade, unitTesting, integration];
+    const sitPredecessors = [qaUpgradePred, unitTesting, integration];
     if (securityTask) sitPredecessors.push(securityTask);
 
     const sit = addTask({
@@ -1138,7 +1973,9 @@
         durationHours: Number(getValue("mockRefreshDays")) * shiftHours,
         predecessors: [lastMockActivity, backupReadiness],
         teams: "BASIS, DBA, Infra, Security",
-        details: "Create the Mock environment from a Production refresh by default. Apply masking, validate access, interfaces, jobs, monitoring and technical baseline."
+        details:
+          "Create the Mock environment from a Production refresh by default. " +
+          "Apply masking, validate access, interfaces, jobs, monitoring, HA/DR configuration where applicable and the technical baseline."
       });
 
       const mockUptime = addTask({
@@ -1147,38 +1984,26 @@
         durationHours: 24,
         predecessors: [mockBuild],
         teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security",
-        details: "Complete weekday single-shift activities: backups, bridge preparation, transport list, resource confirmation, job suspension plan, communications and cutover checklist."
+        details:
+          "Perform weekday single-shift Mock preparation. Confirm cutover bridge, backup process, transport strategy, user-locking approach, interface plan, job plan, technical access and business validation coverage."
       });
 
-      const mockTechnicalCutover = addTask({
+      const mockCutoverPlan = addDetailedTechnicalCutover({
         phase: "Mock Cutover",
-        name: `Mock ${mock}: Weekend 24x7 technical cutover rehearsal`,
-        durationHours: 24,
-        predecessors: [mockUptime],
-        teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security, QA",
-        details: `Execute ${transformationType} rehearsal in Weekend 24×7 mode. Capture task-level duration, downtime, errors, fallback decisions and resource observations.`,
-        calendar: CUTOVER_CALENDAR,
-        executionMode: CUTOVER_MODE
-      });
-
-      const mockSmoke = addTask({
-        phase: "Mock Cutover",
-        name: `Mock ${mock}: Weekend 24x7 smoke test and reconciliation`,
-        durationHours: 12,
-        predecessors: [mockTechnicalCutover],
-        teams: "Business, Functional, QA, BASIS, ABAP, Integration, Security",
-        details: "Validate critical processes, integrations, jobs, authorizations, reports, technical monitoring, key balances and reconciliation.",
-        calendar: CUTOVER_CALENDAR,
-        executionMode: CUTOVER_MODE
+        label: `Mock ${mock}`,
+        transformationType,
+        predecessorId: mockUptime,
+        isProduction: false
       });
 
       lastMockActivity = addTask({
         phase: "Mock Cutover",
         name: `Mock ${mock}: Retrospective and Production runbook optimization`,
         durationHours: 16,
-        predecessors: [mockSmoke],
-        teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security, QA",
-        details: "Compare planned vs actual timing, update dependencies, optimize downtime, resolve issues and improve the Production cutover runbook."
+        predecessors: [mockCutoverPlan.finalTaskId],
+        teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security, QA, Business",
+        details:
+          "Compare planned and actual timings, identify critical-path issues, update SUM parameters where applicable, optimize downtime, revise task sequencing, update rollback points and finalize Production cutover runbook."
       });
     }
 
@@ -1216,40 +2041,28 @@
       transportFreezeImpact: true
     });
 
-    const productionCutover = addTask({
+    const productionCutoverPlan = addDetailedTechnicalCutover({
       phase: "Production Cutover",
-      name: `Production weekend 24x7 technical cutover - ${transformationType}`,
-      durationHours: 24,
-      predecessors: [productionUptime],
-      teams: "PMO, BASIS, DBA, Infra, ABAP, Functional, Integration, Security",
-      details: "Execute Production cutover in Weekend 24×7 mode. Include business downtime, shutdown, technical conversion/upgrade/migration, validation, restart and downtime-end confirmation.",
-      calendar: CUTOVER_CALENDAR,
-      executionMode: CUTOVER_MODE,
-      transportFreezeImpact: true
-    });
-
-    const productionSmoke = addTask({
-      phase: "Production Cutover",
-      name: "Production weekend 24x7 smoke test and reconciliation",
-      durationHours: 12,
-      predecessors: [productionCutover],
-      teams: "Business, Functional, QA, BASIS, ABAP, Integration, Security",
-      details: "Validate critical transactions, interfaces, jobs, authorizations, printing, reports, financial balances, key reconciliation and monitoring.",
-      calendar: CUTOVER_CALENDAR,
-      executionMode: CUTOVER_MODE,
-      transportFreezeImpact: true
+      label: "Production",
+      transformationType,
+      predecessorId: productionUptime,
+      isProduction: true
     });
 
     const goLive = addTask({
       phase: "Production Cutover",
-      name: "Production Go-Live approval and business release",
+      name: "Production Go-Live approval and controlled business release",
       durationHours: 4,
-      predecessors: [productionSmoke],
+      predecessors: [productionCutoverPlan.finalTaskId],
       teams: "PMO, Business, Functional, BASIS, Leadership / CAB",
-      details: "Confirm Go-Live criteria, approve business release, announce downtime end, activate support model and hand over to Hypercare.",
+      details:
+        "Obtain formal Go-Live approval after critical validation. " +
+        "Release users in controlled waves, confirm support bridge ownership, " +
+        "communicate the Production release and transition to Hypercare.",
       calendar: CUTOVER_CALENDAR,
       executionMode: CUTOVER_MODE,
-      transportFreezeImpact: true
+      transportFreezeImpact: true,
+      milestone: true
     });
 
     const hypercare = addTask({
@@ -1306,7 +2119,8 @@
     ).length;
 
     const productionCutover = plan.find(
-      item => item.name.includes("Production weekend 24x7 technical cutover")
+      item => item.name.includes("Production weekend 24x7 technical cutover") ||
+               item.name.includes("Production Go-Live approval")
     );
 
     const latestFinish = plan.reduce((latest, item) => {
@@ -1327,14 +2141,17 @@
         ? "cutover-calendar"
         : "normal-calendar";
 
+      const rowClass = item.milestone ? "milestone-row" : "";
+
       return `
-        <tr>
+        <tr class="${rowClass}">
           <td>${item.id}</td>
           <td class="phase">${escapeHTML(item.phase)}</td>
           <td>${escapeHTML(item.name)}</td>
           <td class="${calendarClass}">${escapeHTML(item.calendar)}</td>
           <td>${escapeHTML(item.executionMode)}</td>
           <td>${item.durationHours} hrs</td>
+          <td>${item.milestone ? "Yes" : "No"}</td>
           <td>${formatDateTime(item.start)}</td>
           <td>${formatDateTime(item.finish)}</td>
           <td>${item.predecessors.length ? item.predecessors.join(", ") : "-"}</td>
@@ -1345,6 +2162,83 @@
       `;
     }).join("");
   }
+
+  function openMPPViewer() {
+    if (!plan.length) {
+      alert("Generate a plan before viewing.");
+      return;
+    }
+
+    const modal = document.getElementById("mppModal");
+    const content = document.getElementById("mppViewerContent");
+
+    const headerRow = `
+      <tr>
+        <th>ID</th>
+        <th>Phase</th>
+        <th>Task</th>
+        <th>Calendar</th>
+        <th>Execution Mode</th>
+        <th>Duration (hrs)</th>
+        <th>Milestone</th>
+        <th>Start Date/Time</th>
+        <th>Finish Date/Time</th>
+        <th>Predecessor</th>
+        <th>Teams</th>
+        <th>Transport Freeze</th>
+        <th>Details</th>
+      </tr>
+    `;
+
+    const dataRows = plan.map(item => {
+      const calendarClass = item.calendar === CUTOVER_CALENDAR
+        ? "cutover-calendar"
+        : "normal-calendar";
+
+      return `
+        <tr>
+          <td>${item.id}</td>
+          <td class="phase">${escapeHTML(item.phase)}</td>
+          <td>${escapeHTML(item.name)}</td>
+          <td class="${calendarClass}">${escapeHTML(item.calendar)}</td>
+          <td>${escapeHTML(item.executionMode)}</td>
+          <td>${item.durationHours}</td>
+          <td>${item.milestone ? "✓" : ""}</td>
+          <td>${formatDateTime(item.start)}</td>
+          <td>${formatDateTime(item.finish)}</td>
+          <td>${item.predecessors.length ? item.predecessors.join(", ") : "-"}</td>
+          <td>${escapeHTML(item.teams)}</td>
+          <td>${item.transportFreezeImpact ? "Yes" : "-"}</td>
+          <td class="small">${escapeHTML(item.details)}</td>
+        </tr>
+      `;
+    }).join("");
+
+    content.innerHTML = `
+      <h2>SAP MPP Plan - Browser Viewer</h2>
+      <p><strong>Project:</strong> ${escapeHTML(getValue("projectName"))} | 
+         <strong>Transformation:</strong> ${escapeHTML(getValue("transformationType"))} | 
+         <strong>Start:</strong> ${getValue("projectStartDate")}</p>
+      <table class="mpp-table">
+        <thead>${headerRow}</thead>
+        <tbody>${dataRows}</tbody>
+      </table>
+    `;
+
+    modal.classList.add("open");
+  }
+
+  function closeMPPViewer() {
+    const modal = document.getElementById("mppModal");
+    modal.classList.remove("open");
+  }
+
+  window.onclick = function(event) {
+    const modal = document.getElementById("mppModal");
+    if (event.target === modal) {
+      modal.classList.remove("open");
+    }
+  };
 
   function buildBrowserFallbackResearch(reason) {
     const targetRelease = getValue("targetRelease");
@@ -1546,9 +2440,19 @@
     }
 
     const headers = [
-      "ID", "Phase", "Task", "Calendar", "Execution Mode",
-      "Duration Hours", "Start", "Finish", "Predecessors",
-      "Teams", "Transport Freeze Impact", "Details"
+      "ID",
+      "Phase",
+      "Task",
+      "Calendar",
+      "Execution Mode",
+      "Duration Hours",
+      "Milestone",
+      "Start",
+      "Finish",
+      "Predecessors",
+      "Teams",
+      "Transport Freeze Impact",
+      "Details"
     ];
 
     const quote = value => `"${String(value ?? "").replaceAll('"', '""')}"`;
@@ -1560,6 +2464,7 @@
       item.calendar,
       item.executionMode,
       item.durationHours,
+      item.milestone ? "Yes" : "No",
       formatDateTime(item.start),
       formatDateTime(item.finish),
       item.predecessors.join(", "),
@@ -1590,6 +2495,7 @@
         <td>${escapeHTML(item.calendar)}</td>
         <td>${escapeHTML(item.executionMode)}</td>
         <td>${item.durationHours}</td>
+        <td>${item.milestone ? "Yes" : "No"}</td>
         <td>${escapeHTML(formatDateTime(item.start))}</td>
         <td>${escapeHTML(formatDateTime(item.finish))}</td>
         <td>${escapeHTML(item.predecessors.join(", "))}</td>
@@ -1606,7 +2512,7 @@
           <table border="1">
             <tr>
               <th>ID</th><th>Phase</th><th>Task</th><th>Calendar</th>
-              <th>Execution Mode</th><th>Duration Hours</th><th>Start</th>
+              <th>Execution Mode</th><th>Duration Hours</th><th>Milestone</th><th>Start</th>
               <th>Finish</th><th>Predecessors</th><th>Teams</th>
               <th>Transport Freeze Impact</th><th>Details</th>
             </tr>
@@ -1658,6 +2564,7 @@
           <ID>${item.id}</ID>
           <Name>${xmlEscape(item.name)}</Name>
           <OutlineLevel>1</OutlineLevel>
+          <Milestone>${item.milestone ? 1 : 0}</Milestone>
           <Start>${projectDate(item.start)}</Start>
           <Finish>${projectDate(item.finish)}</Finish>
           <Duration>PT${item.durationHours}H0M0S</Duration>
@@ -1666,6 +2573,7 @@
             `Phase: ${item.phase}
 Calendar: ${item.calendar}
 Execution Mode: ${item.executionMode}
+Milestone: ${item.milestone ? "Yes" : "No"}
 Teams: ${item.teams}
 Transport Freeze Impact: ${item.transportFreezeImpact ? "Yes" : "No"}
 SAP Research Source: ${sapResearch.source}
