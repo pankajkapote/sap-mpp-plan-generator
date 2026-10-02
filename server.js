@@ -167,7 +167,7 @@ KEY GUIDES:
 - guide or document name - why it matters
 
 PLANNING CONSIDERATIONS:
-- one concise, actionable planning item per line (PAM / OS / DB support, prerequisites, downtime and SUM phases, SPDD/SPAU, HA/DR, rollback, post-conversion checks). Give 8 to 12 items.`;
+- one concise, actionable planning item per line. Cover, where applicable: mandatory pre-checks (PAM / OS / DB / application versions, tool versions, free space), mandatory SAP Notes for the SUM version and target release, Readiness Check and Simplification Item Check, SPDD/SPAU leftovers, open repairs and transports, database log / archive mode during downtime, HA / cluster handling before downtime, the SUM ABAP Workbench lock (REPACHK2) and customer approval points, rollback, post-conversion checks. Give 8 to 12 items.`;
 
 /* ------------------------------------------------------------------ */
 /* Tier 1: Gemini + Google Search grounding                            */
@@ -311,7 +311,7 @@ function buildTavilyQuery(p) {
     /sap/i.test(target) ? "" : "SAP",
     target,
     clean(p.transformationType),
-    "guide",
+    "guide SUM prerequisites",
     clean(p.targetDatabase)
   ].filter(Boolean);
   return parts.join(" ").slice(0, 380);

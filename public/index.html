@@ -53,6 +53,23 @@
       color: #ffd9a0;
     }
 
+    .research-status {
+      margin: 10px 0;
+      padding: 9px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .research-status.pending {
+      background: #fff3dd;
+      border-left: 4px solid var(--orange);
+    }
+
+    .research-status.ok {
+      background: #e8f6ee;
+      border-left: 4px solid #1f8f4e;
+    }
+
     footer.site-footer {
       margin: 10px 0 0;
       padding: 18px 24px 26px;
@@ -737,11 +754,11 @@
   </section>
 
   <section class="card input-section">
-    <h2>4. SAP Guide Research and Exports</h2>
+    <h2>4. SAP Guide Research, Plan Generation and Exports</h2>
 
     <div class="actions">
-      <button onclick="generatePlan()">Generate MPP Plan</button>
-      <button class="warning" onclick="researchSAPGuides()">Research SAP Guides</button>
+      <button class="warning" onclick="researchSAPGuides()">Step 1: Research SAP Guides</button>
+      <button onclick="generatePlan()">Step 2: Generate MPP Plan</button>
       <button class="secondary" onclick="exportCSV()">Export CSV</button>
       <button class="secondary" onclick="exportExcel()">Export Excel-Compatible XLS</button>
       <button class="secondary" onclick="exportProjectXML()">Export Microsoft Project XML</button>
@@ -749,8 +766,14 @@
       <button class="secondary" onclick="window.print()">Print / Save as PDF</button>
     </div>
 
+    <div class="checks">
+      <label><input id="includeResearchTasks" checked type="checkbox" /> Add each research finding as a task in the Planning phase</label>
+    </div>
+
+    <p id="researchStatus" class="research-status pending"></p>
+
     <p class="note">
-      Research first and then generate the plan again. Gemini research (Google Search grounded)
+      Run Step 1 first, then Step 2: findings from the research become plan tasks. Gemini research (Google Search grounded)
       is attempted first through <code>/api/research/sap-guides</code>; if it is unavailable or
       quota-limited, Tavily (SAP Help search, optionally summarised by Cohere) is tried next. The
       exact reason for any skipped source is shown below, and if none work the page creates targeted SAP Help Portal and Google
@@ -1091,6 +1114,165 @@
     });
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Guide-derived plan content                                          */
+  /* Basis: SUM 2.0 guide (SP11 text reviewed, Quick Guide + chapters), */
+  /* S/4HANA conversion pre-check notes. Numbers and SAP Notes change    */
+  /* between SUM versions: always re-verify against the guide and the    */
+  /* central SUM Note of the SUM version actually used.                  */
+  /* ------------------------------------------------------------------ */
+
+  function isConversionType(transformationType) {
+    const text = String(transformationType || "").toLowerCase();
+    return text.includes("conversion") || text.includes("s/4hana");
+  }
+
+  function shorten(text, max) {
+    const value = String(text || "").replace(/\s+/g, " ").trim();
+    return value.length > max ? value.slice(0, max - 3).trimEnd() + "..." : value;
+  }
+
+  const SUM_DETAILS = {
+    extraction:
+      "Prepare and extract upgrade media, SAP kernel, support packages, stack XML (from SAP Maintenance Planner) and software components. Verify digital signatures of the archives and free space for the SUM directory, download directory and DIR_TRANS. Enter the DDIC and database SYSTEM passwords, check the sapcpe configuration, implement the SAP Notes that SUM displays, and review the SPAU fill level: confirm obsolete notes, reset non-adjusted objects that have an active SAP version to SAP standard, and finish outstanding modification adjustments.",
+    configuration:
+      "Configure SUM: scenario strategy (Standard / Downtime-optimized / Single System), process and shadow-instance parameters, kernel / tp / R3trans versions, SPAM version, stack XML, add-ons and their SAP Notes, support packages, integration of customer transports (customer buffer, single change requests, SPDD/SPAU adjustment transports), languages, and the database archive / log-mode option for downtime (SUM guide: Database Archiving Parameter). Save report variants for release upgrades. Record every decision in the runbook.",
+    checks:
+      "Evaluate the SUM Checks roadmap step: OS, database and kernel requirements, free space, add-on compatibility, database triggers (SLT) on exchange tables, SPDD/SPAU preparation, transport conflicts, client requirements and required manual actions. Resolve all errors and review checks.log. For S/4HANA conversions the Simplification Item checks run again here: SUM stops if mandatory activities were not completed or the SI-check notes are missing.",
+    preprocessing:
+      "SUM Preprocessing (uptime, shadow system): ABAP Workbench is locked at the start (phase REPACHK2) only after customer confirmation; release locked objects and confirm repairs; clean up outstanding updates, RFC calls and open data extraction orders (at the latest in JOB_RSVBCHCK_R/D); shadow instance creation and cloning, SPDD adjustments (verify the SPDD safety transport request), shadow import and activation. From phase START_SHDI_FIRST only a front end compatible with the target release can log on. Keep a recoverable copy of the old SAP kernel. Production stays online but expect extra load, so run in a low-load window. SUM waits at the end of Preprocessing: downtime starts only when Next is chosen.",
+    followUp:
+      "SUM guide follow-up activities: solve P-errors (longpost.log); follow-up for SAP profiles and user root; SAP HANA database backup where applicable; monitoring and SAP kernel follow-ups; re-import additional programs; adjust repository objects (SPAU / SPAU_ENH); update the where-used list; adjust Customizing and customer developments; SAP Solution Manager follow-ups; user and role administration (SU25); system time-zone check; reschedule background jobs; generate loads (SGEN); ALE follow-up; upgrade additional application server instances; check for indexes unknown to the SAP system; import Support Packages after the update if planned; distribute the TMS configuration (STMS); language transport follow-up; save files needed for later updates and delete log files only after evidence is archived."
+  };
+
+  function lockNowGateDetails(isDevelopment) {
+    return (
+      "STOP GATE: do not choose Lock / Next in SUM until the customer has confirmed in writing. " +
+      "SUM asks to lock the ABAP Workbench at the start of Preprocessing (phase REPACHK2 for release upgrades and conversions; REPACHK_EHPI for enhancement package / SPS updates). " +
+      "After the lock there is no development and no transport into or out of this system, including emergency fixes, until SUM has finished (SUM guide: Impact on Development); unlocking during the run is an emergency measure only and can jeopardise the update. " +
+      "Confirm before approval: (1) customer / application owner and CAB approval recorded with name, date and time; " +
+      "(2) developers informed and dual maintenance or a temporary DEV copy in place for emergency fixes; " +
+      "(3) all open repairs released and confirmed, import queues empty, transport freeze communicated; " +
+      "(4) SPDD / SPAU leftovers resolved or consciously deferred; " +
+      "(5) SUM Checks results reviewed with no unresolved errors; " +
+      "(6) valid backup / restore point; " +
+      "(7) Preprocessing duration and planned downtime date agreed. " +
+      "If any item is open, leave SUM waiting at this dialog and escalate; SUM can be held and resumed. " +
+      "An early lock lets SUM run unattended for longer, but only with the customer's agreement." +
+      (isDevelopment ? " This is the Development system: the freeze directly blocks developers and emergency corrections for the whole update." : "")
+    );
+  }
+
+  function dbLogModeSetDetails() {
+    return (
+      "Switch the database to the approved downtime logging mode so the log / archive area cannot fill during SUM downtime. " +
+      "SAP HANA: set log_mode = overwrite (global.ini, section persistence); log backups stop and point-in-time recovery is not possible until normal mode and a new full data backup are restored. " +
+      "Other databases: disable archive / redo-log archiving as described in the database-specific SUM guide; SUM offers a Database Archive Mode option in Configuration (SUM guide: Database Archiving Parameter; for DMO with SAP HANA source see SAP Note 3484081). " +
+      "Prerequisites: verified full backup completed first, DBA lead and customer have accepted the loss of point-in-time recovery during downtime, log / archive area free space checked, restore point and fallback recorded in the runbook. " +
+      "With DMO to SAP HANA on SUM 2.0 SP14 or higher, SUM sets log mode overwrite before the migration and normal at the end; still verify the actual state."
+    );
+  }
+
+  function dbLogModeRestoreDetails() {
+    return (
+      "Reset the database to normal logging (SAP HANA: log_mode = normal; other databases: re-enable archiving), re-enable automatic log backup, verify the log backup destination and take a full database backup. " +
+      "SUM guide: the full backup is a prerequisite for resuming production operation when archiving was deactivated, and it should be taken after all required follow-up activities so it contains their changes. " +
+      "Record the backup evidence before ramp-up."
+    );
+  }
+
+  function addPreUpgradeChecks({
+    phase,
+    label,
+    predecessorId,
+    transformationType,
+    transportFreezeImpact = false
+  }) {
+    const sumApplicable = isSUMApplicable(transformationType);
+    const conversion = isConversionType(transformationType);
+    const targetRelease = getValue("targetRelease");
+    let current = predecessorId;
+
+    const haNote = hasHAorDR()
+      ? " HA / cluster systems: complete the HA preparation described in the SUM guide and agree the cluster maintenance procedure."
+      : "";
+
+    const prereqDetails = sumApplicable
+      ? "Mandatory technical pre-checks before SUM is started (SUM guide, Preparation). " +
+        `(1) Product Availability Matrix: ${getValue("targetApplicationOS")} and ${getValue("targetDatabase")} on ${getValue("targetDatabaseOS")} are supported for ${targetRelease}; upgrade OS / database first where required (SUM expects this by Preprocessing at the latest). ` +
+        "(2) Hardware: swap of at least 20 GB; at least 40 GB free for the SUM directory and for the download directory, 20 GB for DIR_TRANS; database free space as calculated by SUM (guide range 50 to 200 GB; values from the SUM 2.0 SP11 guide, verify for the SUM version in use). " +
+        "(3) Tools: latest SUM patch, SAP Host Agent with SUM registered, kernel / tp / R3trans versions, SAP HANA client and required HANA software components at a sufficient version. " +
+        "(4) Central services: RZ10 parameters rdisp/mshost and rdisp/wp_no_vb; ASCS split / move and standalone enqueue server decisions. " +
+        "(5) RZ04 operation mode for the update, enough background work processes, OS user authentication for the <sid>adm user. " +
+        "(6) Environment files saved; SUM and download directories prepared with the Maintenance Planner stack.xml. " +
+        "(7) A front end compatible with the target release is available (needed from phase START_SHDI_FIRST). " +
+        (conversion ? "(8) S/4HANA: start the SUM extended prerequisites check already in the prepare phase. " : "") +
+        haNote
+      : "Mandatory technical pre-checks: Product Availability Matrix validation for the target OS, database and release; hardware, storage and network readiness; OS packages and kernel parameters per SAP Notes; database prerequisites; SAP Host Agent and kernel versions; validated backup; open-item review." + haNote;
+
+    current = addTask({
+      phase,
+      name: `${label}: Pre-checks - OS, database and application prerequisites (PAM, tools, space, profiles)`,
+      durationHours: 8,
+      predecessors: [current],
+      teams: "BASIS, DBA, Infra, Security",
+      details: prereqDetails,
+      transportFreezeImpact
+    });
+
+    if (!sumApplicable) return current;
+
+    current = addTask({
+      phase,
+      name: `${label}: Pre-checks - mandatory SAP Notes, SUM notes and Maintenance Planner stack`,
+      durationHours: 6,
+      predecessors: [current],
+      teams: "BASIS, ABAP, Functional, DBA",
+      details:
+        "Download and implement or verify the mandatory SAP Notes, always in their newest version: the central SUM Note for the SUM SP level in use and the database-specific SUM Note (SUM guide: Required SAP Notes); the SAP Notes that SUM itself lists during Extraction and Preprocessing; product-specific upgrade / conversion notes and add-on notes. " +
+        (conversion
+          ? "S/4HANA conversion: implement the Simplification Item Check framework (SAP Note 2399707), the consistency check classes (SAP Note 2502552) and the release-specific S4TC / TCI note for the target release in this system; use the same Simplification Item Catalog version in every system of the landscape. These checks run again as SUM prerequisite checks and SUM pauses if they are missing. "
+          : "") +
+        "Confirm the stack.xml and download basket from SAP Maintenance Planner are current, verify checksums, and identify customer transports / buffer files to integrate into SUM.",
+      transportFreezeImpact
+    });
+
+    current = addTask({
+      phase,
+      name: `${label}: Pre-checks - SPAU/SPDD leftovers, open repairs and transports, updates, queues and jobs`,
+      durationHours: 12,
+      predecessors: [current],
+      teams: "BASIS, ABAP, Functional",
+      details:
+        "Clean-up that SUM requires before it can proceed (SUM guide, Quick Guide): SPAU fill level - confirm obsolete notes, reset non-adjusted objects that have an active SAP version to SAP standard and complete outstanding modification adjustments (SPDD / SPAU) so SUM does not reset them automatically; release and confirm all open repairs and open transport requests (SE01 / SE09) and empty the import queues (STMS); process incomplete conversion requests and restart logs (SE14); clear outstanding update requests (SM13; SUM needs this at the latest in JOB_RSVBCHCK_R/D); empty qRFC / tRFC queues (SMQ1, SMQ2, SM58) and open data extraction orders; review the background job schedule (SM37) and plan job suspension; for release upgrades check customer tables that conflict with new views; execute planned data management / archiving to reduce downtime. " +
+        (conversion
+          ? "S/4HANA conversion: fix all red Simplification Item consistency errors (report /SDF/RC_START_CHECK), complete mandatory pre-conversion activities such as Customer / Vendor Integration, and apply exemptions only with documented approval."
+          : ""),
+      transportFreezeImpact
+    });
+
+    return current;
+  }
+
+  function addLockNowGate({
+    phase,
+    label,
+    predecessorId,
+    durationHours = 4,
+    transportFreezeImpact = false,
+    isDevelopment = false
+  }) {
+    return addTask({
+      phase,
+      name: `${label}: [CUSTOMER GATE] Lock Now - customer confirmation required before SUM locks the ABAP Workbench (REPACHK2)`,
+      durationHours,
+      predecessors: [predecessorId],
+      teams: "PMO, BASIS, ABAP, Functional, Security, Business (Customer), Leadership / CAB",
+      details: lockNowGateDetails(isDevelopment),
+      transportFreezeImpact
+    });
+  }
+
   function addNonProdUpgrade({
     systemName,
     systemSID,
@@ -1101,6 +1283,13 @@
     const sumApplicable = isSUMApplicable(transformationType);
     let currentPredecessor = predecessorId;
 
+    currentPredecessor = addPreUpgradeChecks({
+      phase: "Non-Production Upgrade",
+      label: `${systemName} (${systemSID})`,
+      predecessorId: currentPredecessor,
+      transformationType
+    });
+
     // SUM Extraction Phase
     if (sumApplicable) {
       currentPredecessor = addTask({
@@ -1110,7 +1299,7 @@
         predecessors: [currentPredecessor],
         teams: "BASIS, DBA, Infra",
         details:
-          `Prepare and extract upgrade media, kernel, support packages, stack XML and software components for ${systemName}. Validate media integrity and filesystem capacity.`
+          `${SUM_DETAILS.extraction} System: ${systemName}.`
       });
 
       currentPredecessor = addTask({
@@ -1120,7 +1309,7 @@
         predecessors: [currentPredecessor],
         teams: "BASIS, DBA, Infra",
         details:
-          `Configure SUM parameters, stack XML, maintenance procedure, database connection and upgrade paths for ${systemName}.`
+          `${SUM_DETAILS.configuration} System: ${systemName}.`
       });
 
       currentPredecessor = addTask({
@@ -1130,7 +1319,15 @@
         predecessors: [currentPredecessor],
         teams: "BASIS, DBA, Infra, ABAP",
         details:
-          `Resolve SUM checks, disk-space, add-on compatibility, SPDD preparation, transport conflicts and required manual actions for ${systemName}.`
+          `${SUM_DETAILS.checks} System: ${systemName}.`
+      });
+
+      currentPredecessor = addLockNowGate({
+        phase: "Non-Production Upgrade",
+        label: `${systemName} (${systemSID})`,
+        predecessorId: currentPredecessor,
+        durationHours: 2,
+        isDevelopment: systemSID === "DEV"
       });
 
       currentPredecessor = addTask({
@@ -1140,7 +1337,7 @@
         predecessors: [currentPredecessor],
         teams: "BASIS, DBA, Infra, ABAP",
         details:
-          `Execute SUM uptime pre-processing, shadow instance processing and import preparation for ${systemName}.`
+          `${SUM_DETAILS.preprocessing} System: ${systemName}.`
       });
 
       if (isFirstNonProd) {
@@ -1203,6 +1400,17 @@
         teams: "BASIS, DBA, Infra",
         details:
           `Execute technical upgrade, migration or system copy procedure for ${systemName} during normal working hours.`
+      });
+    }
+
+    if (sumApplicable) {
+      currentPredecessor = addTask({
+        phase: "Non-Production Upgrade",
+        name: `${systemName} (${systemSID}): SUM follow-up activities (SUM guide, follow-up chapter)`,
+        durationHours: 8,
+        predecessors: [currentPredecessor],
+        teams: "BASIS, DBA, ABAP, Security, Functional",
+        details: `${SUM_DETAILS.followUp} System: ${systemName}.`
       });
     }
 
@@ -1325,6 +1533,14 @@
       currentPredecessor = targetHAValidation;
     }
 
+    currentPredecessor = addPreUpgradeChecks({
+      phase,
+      label,
+      predecessorId: currentPredecessor,
+      transformationType,
+      transportFreezeImpact
+    });
+
     // SUM UPTIME PHASES
 
     if (sumApplicable) {
@@ -1335,7 +1551,7 @@
         predecessors: [currentPredecessor],
         teams: "BASIS, DBA, Infra",
         details:
-          "Prepare and extract required upgrade media, SAP kernel files, support packages, stack XML, maintenance planner output and relevant software components. Validate media integrity and filesystem capacity.",
+          SUM_DETAILS.extraction,
         transportFreezeImpact
       });
 
@@ -1346,7 +1562,7 @@
         predecessors: [sumExtraction],
         teams: "BASIS, DBA, Infra",
         details:
-          "Configure SUM parameters, stack XML, maintenance procedure, database connection, download directory, archive directory, shadow instance settings, transport strategy and upgrade paths.",
+          SUM_DETAILS.configuration,
         transportFreezeImpact
       });
 
@@ -1357,17 +1573,26 @@
         predecessors: [sumConfiguration],
         teams: "BASIS, DBA, Infra, ABAP, Functional",
         details:
-          "Resolve SUM checks, disk-space checks, add-on checks, SPDD/SPAU preparation, transport conflicts, database checks, kernel checks, client requirements and required manual actions.",
+          SUM_DETAILS.checks,
         transportFreezeImpact
+      });
+
+      const lockNowGate = addLockNowGate({
+        phase,
+        label,
+        predecessorId: sumChecks,
+        durationHours: 4,
+        transportFreezeImpact,
+        isDevelopment: false
       });
 
       const lockNowMilestone = addMilestone({
         phase,
-        name: `${label}: SUM Lock Now milestone`,
-        predecessors: [sumChecks],
+        name: `${label}: SUM Lock Now milestone - ABAP Workbench locked (customer-approved)`,
+        predecessors: [lockNowGate],
         teams: "PMO, BASIS, ABAP, Functional, Security",
         details:
-          "Enter the SUM Lock Now phase. Confirm controlled change freeze, restrict non-approved technical changes, validate transport queue and communicate the final change-control process.",
+          "Customer approval is recorded. Enter the SUM Lock Now phase (ABAP Workbench lock, phase REPACHK2). From here no development and no transports into or out of this system until SUM completes. Confirm the controlled change freeze, restrict non-approved technical changes, validate the transport queue and communicate the final change-control process.",
         transportFreezeImpact
       });
 
@@ -1389,7 +1614,7 @@
         predecessors: [lockNowActivities],
         teams: "BASIS, DBA, Infra, ABAP",
         details:
-          "Execute SUM uptime pre-processing activities, shadow instance processing, import preparation, upgrade preparation, data dictionary preparation and required technical checks.",
+          SUM_DETAILS.preprocessing,
         transportFreezeImpact
       });
 
@@ -1440,15 +1665,31 @@
 
     cutoverPredecessor = finalBackup;
 
+    if (sumApplicable) {
+      const dbLogModeSet = addTask({
+        phase,
+        name: `${label}: Set database log / archive mode for downtime (SAP HANA: log_mode overwrite) after verified backup`,
+        durationHours: 2,
+        predecessors: [cutoverPredecessor],
+        teams: "DBA, BASIS, Infra",
+        details: dbLogModeSetDetails(),
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+
+      cutoverPredecessor = dbLogModeSet;
+    }
+
     if (includeHA) {
       const haFreeze = addTask({
         phase,
-        name: `${label}: Freeze HA / DR automation and replication controls`,
+        name: `${label}: Disable HA / DR failover automation and replication controls before entering downtime`,
         durationHours: 2,
         predecessors: [cutoverPredecessor],
         teams: "BASIS, DBA, Infra, Security",
         details:
-          "Place HA/DR automation into approved maintenance mode. Validate cluster behavior, suspend non-required automated failover actions, document replication state and prevent unintended failover or split-brain conditions.",
+          "Disable HA / failover automation BEFORE downtime so the cluster cannot fail over or restart services while SUM stops and starts the system (SUM guide: Preparing the Update of High Availability Systems). Place HA/DR automation into approved maintenance mode. Validate cluster behavior, suspend non-required automated failover actions, document replication state and prevent unintended failover or split-brain conditions.",
         calendar: CUTOVER_CALENDAR,
         executionMode: CUTOVER_MODE,
         transportFreezeImpact
@@ -1549,6 +1790,22 @@
       cutoverPredecessor = sourceFence;
     }
 
+    if (sumApplicable) {
+      const downtimeGate = addMilestone({
+        phase,
+        name: `${label}: [CUSTOMER GATE] Go/No-Go - confirm start of SUM downtime (choose Next after Preprocessing)`,
+        predecessors: [cutoverPredecessor],
+        teams: "PMO, Business (Customer), Leadership / CAB, BASIS, DBA, Functional",
+        details:
+          "SUM Preprocessing is complete and SUM is waiting; downtime starts only when Next is chosen (SUM guide). Obtain explicit customer confirmation before proceeding. Verify: valid final backup, database log / archive mode set as approved, HA / cluster automation disabled, business users locked, downtime window and rollback criteria agreed, bridge participants present. If not approved, leave SUM waiting or stop it and resume inside the agreed window.",
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+
+      cutoverPredecessor = downtimeGate;
+    }
+
     let technicalExecution;
 
     if (sumApplicable) {
@@ -1641,6 +1898,20 @@
       });
 
       postProcessingPredecessor = spauExecution;
+
+      const sumFollowUp = addTask({
+        phase,
+        name: `${label}: SUM follow-up activities (SUM guide, follow-up chapter)`,
+        durationHours: 8,
+        predecessors: [postProcessingPredecessor],
+        teams: "BASIS, DBA, ABAP, Security, Functional",
+        details: SUM_DETAILS.followUp,
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+
+      postProcessingPredecessor = sumFollowUp;
     }
 
     if (includeHA) {
@@ -1699,11 +1970,27 @@
       transportFreezeImpact
     });
 
+    let rampUpPredecessor = customerBufferTransport;
+
+    if (sumApplicable) {
+      rampUpPredecessor = addTask({
+        phase,
+        name: `${label}: Restore normal database log / archive mode and take full backup (required to resume production)`,
+        durationHours: 6,
+        predecessors: [customerBufferTransport],
+        teams: "DBA, BASIS, Infra",
+        details: dbLogModeRestoreDetails(),
+        calendar: CUTOVER_CALENDAR,
+        executionMode: CUTOVER_MODE,
+        transportFreezeImpact
+      });
+    }
+
     const rampUp = addTask({
       phase,
       name: `${label}: Ramp-up activities`,
       durationHours: 6,
-      predecessors: [customerBufferTransport],
+      predecessors: [rampUpPredecessor],
       teams: "BASIS, Functional, ABAP, Integration, Security, Business",
       details:
         "Perform ramp-up activities: start interfaces in controlled sequence, release approved batch jobs, restore print processing, enable monitoring, validate technical users, unlock pilot users and execute prioritized business transaction checks.",
@@ -1785,8 +2072,26 @@
       durationHours: 56,
       predecessors: [kickoff],
       teams: "BASIS, Functional, ABAP, Security, DBA",
-      details: `Perform applicable SAP readiness checks, add-on compatibility, custom-code analysis, simplification item checks and technical release compatibility validation. Source: ${sourceStack}. Target: ${targetStack}.`
+      details:
+        `Perform applicable SAP readiness checks, add-on compatibility, custom-code analysis, simplification item checks and technical release compatibility validation. Source: ${sourceStack}. Target: ${targetStack}.` +
+        (isConversionType(transformationType)
+          ? " S/4HANA conversion: run SAP Readiness Check (SAP Note 2758146) on a copy of Production early in the project, and the Simplification Item Check (report /SDF/RC_START_CHECK, SAP Note 2399707) against the target release; fix all red items; run custom-code analysis (ATC); check add-ons and business functions against the target release; review sizing and recommended Fiori apps; start the SUM extended prerequisites check during preparation."
+          : "")
     });
+
+    const researched = sapResearch.source && sapResearch.source !== "Not researched";
+    const researchFindings = (sapResearch.planningConsiderations || []).slice(0, 12);
+    const researchRefs = (sapResearch.references || [])
+      .slice(0, 8)
+      .map(ref => `${ref.title} (${ref.url || ref.sapHelpUrl || ""})`)
+      .join("; ");
+
+    const researchText = !researched
+      ? "SAP guide research has not been run: this plan uses the built-in SUM / Upgrade / Conversion guide checklist only. Run 'Research SAP Guides' and regenerate the plan to add current findings."
+      : `Research source: ${sapResearch.source}.` +
+        (sapResearch.fallback
+          ? " Live research was unavailable, so only the generic local planning rules were applied."
+          : "");
 
     const documentationValidation = addTask({
       phase: "Planning",
@@ -1795,20 +2100,58 @@
       predecessors: [kickoff],
       teams: "BASIS, Functional, ABAP, DBA, Infra, Security, PMO",
       details:
-        `Research source: ${sapResearch.source}. ` +
-        `Validate SAP Help documentation, Product Availability Matrix, Maintenance Planner output, Readiness Check results, SAP Notes and applicable implementation guides. ` +
-        `${
-          sapResearch.planningConsiderations.length
-            ? sapResearch.planningConsiderations.join(" ")
-            : "Run SAP Guide Research to add specific documentation validation recommendations."
-        }`
+        `${researchText} ` +
+        `Validate SAP Help documentation, Product Availability Matrix, Maintenance Planner output, Readiness Check results, SAP Notes and applicable implementation guides (SUM guide and upgrade / conversion guide for the target release). ` +
+        (researchFindings.length
+          ? `Research findings: ${researchFindings.map((finding, index) => `(${index + 1}) ${finding}`).join(" ")} `
+          : "") +
+        (researchRefs ? `References: ${researchRefs}. ` : "") +
+        "Re-verify all SAP Note numbers and values against the current guide for the SUM version in use."
     });
+
+    const upgradeStrategy = addTask({
+      phase: "Planning",
+      name: "SUM scenario, downtime approach and parameter decisions",
+      durationHours: 24,
+      predecessors: [documentationValidation],
+      teams: "BASIS, DBA, Infra, ABAP, PMO",
+      details:
+        "Decide and document before the first system is touched: scenario strategy (Standard / Downtime-optimized / Single System; nZDM or DMO where the database changes); database archive / log-mode approach for downtime (SUM guide: Database Archiving Parameter); SGEN execution mode; shadow-instance and process parameters; integration of customer transports and SPDD / SPAU transports into SUM; additional languages (each language adds roughly 30 minutes to the import); HA / distributed systems; ASCS split / move and standalone enqueue server where applicable. Start planning at least two weeks before the first SUM run and use the mock runs to measure the real downtime."
+    });
+
+    const devFreezePlan = addTask({
+      phase: "Planning",
+      name: "Development freeze and dual-maintenance plan (ABAP Workbench lock impact)",
+      durationHours: 16,
+      predecessors: [documentationValidation],
+      teams: "ABAP, BASIS, Functional, PMO",
+      details:
+        "SUM locks the ABAP Workbench at the start of Preprocessing (phase REPACHK2); from then on there is no development and no transport into or out of that system, which also blocks emergency corrections for Production. Plan a temporary copy of the Development system for emergency fixes (dual maintenance, as recommended in the SUM guide), inform developers, define the emergency change route and agree the exact lock dates with the customer for DEV, QAS and PRD. Update systems in the transport order (DEV, QAS, PRD) with the same software and transport only between systems at the same level."
+    });
+
+    const researchTaskIds = [];
+
+    if (isChecked("includeResearchTasks") && !sapResearch.fallback && researchFindings.length) {
+      researchFindings.forEach((finding, index) => {
+        researchTaskIds.push(
+          addTask({
+            phase: "Planning",
+            name: `SAP guide research finding ${index + 1}: ${shorten(finding, 90)}`,
+            durationHours: 2,
+            predecessors: [documentationValidation],
+            teams: "BASIS, DBA, Functional",
+            details:
+              `${finding} Source: ${sapResearch.source}. Validate against the current SAP Help guide / SAP Note and record the decision (apply, not applicable, or risk accepted).`
+          })
+        );
+      });
+    }
 
     const architecture = addTask({
       phase: "Planning",
       name: "Target architecture, hosting, sizing and connectivity design",
       durationHours: 64,
-      predecessors: [kickoff, documentationValidation],
+      predecessors: [kickoff, documentationValidation, ...researchTaskIds],
       teams: "Infra, BASIS, DBA, Security, Integration",
       details: `Define sizing, network, firewall, DNS, storage, backup, monitoring, HA/DR, connectivity and access design. ${targetStack}.`
     });
@@ -1826,7 +2169,7 @@
       phase: "Planning",
       name: "Cutover, rollback and downtime strategy",
       durationHours: 56,
-      predecessors: [discovery, readiness, documentationValidation],
+      predecessors: [discovery, readiness, documentationValidation, upgradeStrategy, devFreezePlan, ...researchTaskIds],
       teams: "PMO, BASIS, DBA, Infra, Functional, ABAP, Integration, Security",
       details: "Define cutover workstreams, weekend downtime window, rollback decision points, communications, command center model, go/no-go process and detailed cutover runbook."
     });
@@ -2338,7 +2681,33 @@
     };
   }
 
+  function updateResearchStatus() {
+    const el = document.getElementById("researchStatus");
+    if (!el) return;
+
+    const findings = (sapResearch.planningConsiderations || []).length;
+    const refs = (sapResearch.references || []).length;
+
+    if (sapResearch.source === "Not researched") {
+      el.className = "research-status pending";
+      el.textContent =
+        "Research status: not run yet. Run Step 1 first so current SAP guide findings become plan tasks. " +
+        "Without it the plan still contains the built-in SUM / Upgrade / Conversion guide checklist.";
+    } else if (sapResearch.fallback) {
+      el.className = "research-status pending";
+      el.textContent =
+        "Research status: live research was unavailable (" + sapResearch.source + "). " +
+        "The plan will use the built-in SUM / Upgrade / Conversion guide checklist; no research findings will be added as tasks.";
+    } else {
+      el.className = "research-status ok";
+      el.textContent =
+        "Research status: " + sapResearch.source + ". " + findings +
+        " findings and " + refs + " references will be added to the plan when you run Step 2.";
+    }
+  }
+
   function showResearchResults() {
+    updateResearchStatus();
     const resultBox = document.getElementById("guideResults");
     resultBox.style.display = "block";
 
@@ -2380,8 +2749,8 @@
       <pre>${escapeHTML(sapResearch.answer)}</pre>
       ${references ? `<strong>Documentation Searches / References</strong><ul>${references}</ul>` : ""}
       <p class="note">
-        Select <strong>Generate MPP Plan</strong> again to include these research findings in the
-        SAP documentation validation task.
+        Now run <strong>Step 2: Generate MPP Plan</strong>. The findings are added as Planning tasks
+        and to the SAP documentation validation task.
       </p>
     `;
   }
@@ -2665,6 +3034,7 @@ Details: ${item.details}`
   }
 
   applyHanaRules();
+  updateResearchStatus();
 </script>
 </body>
 </html>
