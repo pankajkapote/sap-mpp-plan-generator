@@ -46,6 +46,22 @@
       color: #c7ddf4;
     }
 
+    header p.tagline {
+      margin-top: 9px;
+      font-size: 13px;
+      font-style: italic;
+      color: #ffd9a0;
+    }
+
+    footer.site-footer {
+      margin: 10px 0 0;
+      padding: 18px 24px 26px;
+      text-align: center;
+      font-size: 13px;
+      font-style: italic;
+      color: #5b6b7f;
+    }
+
     main {
       max-width: 1600px;
       margin: auto;
@@ -377,6 +393,7 @@
 <header>
   <h1>SAP MPP Plan Generator</h1>
   <p>SAP Upgrade · S/4HANA Conversion · Migration · RISE · Installation · Lift & Shift</p>
+  <p class="tagline">Built by a BASIS guy, for BASIS guys — Pankaj Kapote</p>
 </header>
 
 <main>
@@ -733,9 +750,10 @@
     </div>
 
     <p class="note">
-      Research first and then generate the plan again. Gemini research is attempted through
-      <code>/api/research/sap-guides</code>. If unavailable, quota-limited, or if the backend
-      cannot be reached, the page creates targeted SAP Help Portal and Google
+      Research first and then generate the plan again. Gemini research (Google Search grounded)
+      is attempted first through <code>/api/research/sap-guides</code>; if it is unavailable or
+      quota-limited, Tavily (SAP Help search, optionally summarised by Cohere) is tried next. The
+      exact reason for any skipped source is shown below, and if none work the page creates targeted SAP Help Portal and Google
       <code>site:help.sap.com/docs</code> search links without failing.
     </p>
 
@@ -781,6 +799,8 @@
     </div>
   </section>
 </main>
+
+<footer class="site-footer">Built by a BASIS guy, for BASIS guys — Pankaj Kapote</footer>
 
 <div id="mppModal" class="modal">
   <div class="modal-content">
@@ -2300,8 +2320,9 @@
       source: "Browser Fallback SAP Help Search",
       fallback: true,
       answer:
-        `Gemini guide research is unavailable or the backend could not be reached. ` +
-        `The application generated targeted SAP Help Portal and Google site-restricted search links instead of failing.`,
+        `Live Gemini research was not used.\n` +
+        `Reason: ${reason || "unknown"}\n\n` +
+        `Using local planning rules and SAP best practices. Targeted SAP Help Portal and Google site-restricted search links were generated below instead.`,
       planningConsiderations: [
         "Validate the SAP Product Availability Matrix for the selected SAP release, hosting, SAP application operating system and database operating system.",
         "Validate upgrade, conversion, migration or installation steps through SAP Help Portal and SAP Support documentation.",
@@ -2345,7 +2366,15 @@
     resultBox.innerHTML = `
       <strong>Research Source:</strong> ${escapeHTML(sapResearch.source)}
       ${sapResearch.fallback
-        ? `<br /><strong>Fallback Mode:</strong> Research links and planning rules were generated without scraping Google or SAP Help content.`
+        ? `<br /><strong>Fallback Mode:</strong> Live Gemini research was not used. The planning rules and search links below are generic, not read from the latest SAP Help content.`
+        : ""
+      }
+      ${!sapResearch.fallback && sapResearch.notes && sapResearch.notes.length
+        ? `<br /><strong>Earlier research sources unavailable:</strong> ${sapResearch.notes.map(escapeHTML).join(" &middot; ")}`
+        : ""
+      }
+      ${!sapResearch.fallback && sapResearch.grounded === false
+        ? `<br /><strong>Note:</strong> Gemini answered without returning any Google Search sources, so treat this as unverified and check SAP Help.`
         : ""
       }
       <pre>${escapeHTML(sapResearch.answer)}</pre>
@@ -2362,7 +2391,7 @@
 
     resultBox.style.display = "block";
     resultBox.textContent =
-      "Researching SAP documentation. A SAP Help Portal / Google site-restricted fallback will be used automatically if Gemini is quota-limited or unavailable...";
+      "Researching SAP documentation (Gemini + Google Search, then Tavily/Cohere if needed). This can take 10-30 seconds. SAP Help Portal / Google site-restricted links will be used automatically if no research source is available...";
 
     const payload = {
       transformationType: getValue("transformationType"),
@@ -2396,9 +2425,21 @@
 
       const data = await response.json();
 
+      if (data.fallback) {
+        // Server could not reach Gemini: keep the real reason and add search links.
+        sapResearch = buildBrowserFallbackResearch(
+          data.reason || "The research service reported a fallback without a reason."
+        );
+        sapResearch.source = data.source || sapResearch.source;
+        showResearchResults();
+        return;
+      }
+
       sapResearch = {
         source: data.source || "SAP Documentation Research",
-        fallback: Boolean(data.fallback),
+        fallback: false,
+        grounded: data.grounded,
+        notes: data.notes || [],
         answer: data.answer || "No research response was returned.",
         planningConsiderations: data.planningConsiderations || [],
         references: data.references || []
